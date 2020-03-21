@@ -98,7 +98,8 @@ void operation(char inst_input[20], int blank){
     else if(blank == 2){
         char blank1[20];
         int i = 0;
-        while (inst_input[i] != ' '){
+        while (inst_input[i] != ' ')
+        {
             blank1[i] = inst_input[i++];
         }
         i++;

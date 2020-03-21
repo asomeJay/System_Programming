@@ -42,7 +42,7 @@ void operation(char inst_input[20], int blank){
         }
         else if (!strcmp(inst_input, "dump") || !strcmp(inst_input, "du")){
             list_push(inst_input);
-            dump(0, 0);
+            dump(-1, -1, 0);
         }
         else if(!strcmp(inst_input, "help") || !strcmp(inst_input, "h")){
             list_push(inst_input);
@@ -63,12 +63,72 @@ void operation(char inst_input[20], int blank){
         }
     }
     else if (blank == 1){
-        list_push(inst_input);
+        char blank1[20];
+        int i = 0;
+        while (inst_input[i] != ' '){
+            blank1[i] = inst_input[i++];
+        }
+        blank1[i] = '\0';
+        i++;
+
+        if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
+        { 
+            list_push(inst_input);
+
+            char blank2[20];
+            int j = 0;
+            while (inst_input[i] != '\0')
+            {   if(inst_input[i] < '0' || inst_input[i] > '9'){
+                    printf("DUMP ERROR\n");
+                    return;
+                }
+                blank2[j++] = inst_input[i++];
+            }
+            blank2[j] = '\0';
+            dump(atoi(blank2), -1, 1);
+        }
+
+        else if(!strcmp(inst_input, "opcode mnemonic")){
+            list_push(inst_input);
+            //opcode_mnemonic();
+        }
+
         return;
     }
     else if(blank == 2){
+        char blank1[20];
+        int i = 0;
+        while (inst_input[i] != ' '){
+            blank1[i] = inst_input[i++];
+        }
+        i++;
+
         if(!strcmp(inst_input, "edit") || !strcmp(inst_input, "e"))
-            return;
+            return;     
+        else if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
+        {
+            char blank2[20], blank3[20];
+            while (inst_input[i] != ' ')
+            {   if(inst_input[i] < '0' || inst_input[i] >'9'){
+                    printf("DUMP ERROR\n");
+                    return;
+                }
+                blank2[i] = inst_input[i++];
+            }
+            while(inst_input[i] != '\0'){
+                if(inst_input[i] < '0' || inst_input[i] >'9'){
+                    printf("DUMP ERROR\n");
+                    return;
+                }
+                blank3[i] = inst_input[i++];
+            }
+            blank3[i] = '\0';
+
+            list_push(inst_input);
+            dump(atoi(blank2), atoi(blank3), 2);
+        }
+
+
     }
 
     else if(blank == 3){

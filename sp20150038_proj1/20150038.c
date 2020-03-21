@@ -4,76 +4,76 @@
  * I'm Junior of Junior         ***
  * *******************************/
 
-#include "./20150038.h"
-#include "./Memory.h"
-#include "./Opcode.h"
-#include "./Shell.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "Basic.h"
+#include "Memory.h"
+#include "Opcode.h"
+#include "Shell.h"
+
+void operation(char inst_input[20], int blank);
 
 int main(void){
     init();
 
     while (1)
     {
-        int i, inst_index = 0, blank = 0;
-        char inst_input[20] , c;
-        char *extracted_instruction;
+        int i, blank;
+        char inst_input[20];
 
-        printf("sicsim> ");
-        while((c = getchar()) != '\n'){
-            if(c == ' ')
-                blank++;
-            inst_input[inst_index++] = c;
-        }
-        inst_input[inst_index] = '\0';
-        
-        extracted_instruction = instruction(inst_input, blank);
-        if(strcmp(extracted_instruction, "NULL") == 0)
-            continue;
-        
+        printf("sicsim> "); // 계속 출력하는 것
+        blank = in(inst_input);    // inst_input으로 명령 받고 명령어에 빈칸 몇 갠지 return 받는다.
+        operation(inst_input, blank);
     }
+
     return 0;
 }
 
-char * instruction(char inst_input[20], int blank){
-    int i;
-    
+/* 명령어 들어온 걸로 실제 그 함수를 실행한다. 
+실행할 때마다 history list에 저장한다.*/
+
+void operation(char inst_input[20], int blank){
     if(blank == 0){
         if(!strcmp(inst_input, "dir") || !strcmp(inst_input, "d")){
             list_push(inst_input);
             dir();
         }
-        if (!strcmp(inst_input, "dump") || !strcmp(inst_input, "du")){
+        else if (!strcmp(inst_input, "dump") || !strcmp(inst_input, "du")){
             list_push(inst_input);
-
+            dump(0, 0);
         }
-        if(!strcmp(inst_input, "help") || !strcmp(inst_input, "h")){
+        else if(!strcmp(inst_input, "help") || !strcmp(inst_input, "h")){
             list_push(inst_input);
             help();
         }
-        if(!strcmp(inst_input, "history") || !strcmp(inst_input, "hi")) // history
+        else if(!strcmp(inst_input, "history") || !strcmp(inst_input, "hi")){ // history
             list_push(inst_input);
             history();
-        if(!strcmp(inst_input, "opcodelist")){
+        }
+        else if(!strcmp(inst_input, "opcodelist")){
             list_push(inst_input);
         }
-        else if(!strcmp(inst_input, "quit") || !strcmp(inst_input, "q"))  // quit
+        else if(!strcmp(inst_input, "quit") || !strcmp(inst_input, "q")){  // quit
             quit();
+        }
         else if(!strcmp(inst_input, "reset")){
             list_push(inst_input);
         }
     }
     else if (blank == 1){
         list_push(inst_input);
-        return "opcode menmonic";
+        return;
     }
     else if(blank == 2){
         if(!strcmp(inst_input, "edit") || !strcmp(inst_input, "e"))
-            return "edit";
+            return;
     }
 
     else if(blank == 3){
         list_push(inst_input);
         if(!strcmp(inst_input, "fill") || !strcmp(inst_input, "f"))
-            return "fill";
-    }    
+            return;
+    }
 }

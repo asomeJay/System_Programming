@@ -21,7 +21,8 @@ bool is_range(char a);
 int first_number_extractor(char inst_input[20], int *i);
 int middle_number_extractor(char inst_input[20], int* i);
 int last_number_extractor(char inst_input[20], int *i);
-void rest_and_blank(char inst_input[20], int *i);
+int rest_and_blank(char inst_input[20], int *i);
+void argument_extractor(char src[20], char des[20], int *i);
 
 int main(void)
 {
@@ -69,16 +70,13 @@ void operation(char inst_input[20], int blank){
         }
         else if(!strcmp(inst_input, "reset")){
             list_push(inst_input);
+            reset();
         }
     }
     else if (blank == 1){
         char blank1[20];
         int i = 0;
-        while (inst_input[i] != ' '){
-            blank1[i] = inst_input[i++];
-        }
-        blank1[i] = '\0';
-        i++;
+        argument_extractor(inst_input, blank1, &i);
 
         if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
         { 
@@ -105,63 +103,32 @@ void operation(char inst_input[20], int blank){
         return;
     }
     else if(blank == 2){
-        /* Argument Extractor */
         char blank1[20];
         int i = 0;
-
-        while (inst_input[i] != ' ')
-            blank1[i] = inst_input[i++];
-
-        blank1[i++] = '\0';
-        /* Argument Extractor */
+        argument_extractor(inst_input, blank1, &i);
 
         if (!strcmp(blank1, "edit") || !strcmp(blank1, "e"))
         {
-            int b1 = 0, b2 = 0;
+            int address, value;
             printf("EDIT START\n");
-            while (inst_input[i] != ' ' && inst_input[i] != ',')
-            {
-                char a = inst_input[i++];
-                if (!((a > '0' && a < '9') || (a >= 'A' && a <= 'F')))
-                {
-                    printf("EDIT 'ADDRESS' ERROR\n");
-                    return;
-                }
 
-                b1 *= 16;
-                if(a > '0' && a <'9'){
-                    b1 += (a - '0');
-                }
-                else if(a >= 'A' && a <= 'F'){
-                    b1 += (a - 'A') + 10;
-                }
-            }
-            if(inst_input[i++] != ','){
-                printf("EDIT ERROR\n");
+            address = first_number_extractor(inst_input, &i);
+            if(address == ERR){
+                printf("EDIT 'ADDRESS' ERROR\n");
                 return;
             }
 
-            while (inst_input[++i] == ' ')
-                ;
-
-            while (inst_input[i] != '\0')
-            {
-                char a = inst_input[i++];
-                if(!((a > '0' && a < '9') || (a >= 'A' && a <= 'F'))){
-                    printf("EDIT 'VALUE' ERROR\n");
-                    return;
-                }
-                b2 *= 16;
-                if(a > '0' && a <'9'){
-                    b2 += (a - '0');
-                }
-                else if(a >= 'A' && a <= 'F'){
-                    b2 += (a - 'A') + 10;
-                }
+            if(rest_and_blank(inst_input, &i) == ERR){
+                printf("EDIT ERROR ADDRESS <---> VALUE\n");
+                return;
             }
-            printf("%d %d\n", b1, b2);
+            value = last_number_extractor(inst_input, &i);
+            if(value == ERR){
+                printf("EDIT ERROR VALUE \n");
+                return;
+            }
             list_push(inst_input);
-            edit(b1, b2);
+            edit(address, value);
             printf("EDIT END\n");
         }
 
@@ -175,46 +142,15 @@ void operation(char inst_input[20], int blank){
                 return;
             }
 
-            rest_and_blank(inst_input, &i);
-
-            if (i == ERR){
+            if (rest_and_blank(inst_input, &i) == ERR){
                 printf("DUMP ERROR BETWEEN FIRST <----> SECOND ARGU\n");
                 return;
             }
-                /*while (inst_input[i] != ' ' && inst_input[i] != ',')
-            {
-                char a = inst_input[i];
-                if(!is_range(a)){
-                    printf("DUMP ERROR\n");
-                    return;
-                }
-                b1 *= 16;
-                b1 += inst_input[i++] - '0';
-            }
-                if (inst_input[i++] != ',')
-                {
-                    printf("DUMP ERROR\n");
-                    return;
-                }*/
-
-            /*while (inst_input[++i] == ' ')
-                ;*/
             b2 = last_number_extractor(inst_input, &i);
             if(b2 == ERR){
                 printf("DUMP ERROR AT LAST ARGUMENT\n");
                 return;
             }
-            /*while (inst_input[i] != '\0')
-            {
-                char a = inst_input[i];
-                if(!is_range(a)){
-                    printf("DUMP ERROR\n");
-                    return;
-                }
-                b2 *= 16;
-                b2 += inst_input[i++] - '0';
-            }*/
-
             list_push(inst_input);
             dump(b1, b2, 2);
         }
@@ -231,31 +167,29 @@ void operation(char inst_input[20], int blank){
 
         if(!strcmp(blank1, "fill") || !strcmp(blank1, "f")){
             int start, end, value;
-            start = first_number_extractor(inst_input, i);
+            start = first_number_extractor(inst_input, &i);
             if(start == ERR){
                 printf("FILL ERROR AT START ARGU\n");
                 return;
             }
 
-            rest_and_blank(inst_input, i);
-            if(i == ERR){
+            if(rest_and_blank(inst_input, &i) == ERR){
                 printf("FILL ERROR START <---> END\n");
                 return;
             }
 
-            end = middle_number_extractor(inst_input, i);
+            end = middle_number_extractor(inst_input, &i);
             if(end == ERR){
                 printf("FILL ERROR AT END ARGU\n");
                 return;
             }
-
-            rest_and_blank(inst_input, i);
-            if(i == ERR){
+            
+            if(rest_and_blank(inst_input, &i) == ERR){
                 printf("FILL ERROR END <---> VALUE\n");
                 return;
             }
 
-            value = last_number_extractor(inst_input, i);
+            value = last_number_extractor(inst_input, &i);
             if(value == ERR){
                 printf("FILL ERROR AT VALUE ARGU\n");
                 return;
@@ -268,7 +202,7 @@ void operation(char inst_input[20], int blank){
 }
 
 bool is_range(char a){
-    if(!((a > '0' && a < '9') || (a >= 'A' && a <= 'F'))){
+    if(!((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F'))){
         return false;
     }
     return true;
@@ -284,7 +218,12 @@ int first_number_extractor(char inst_input[20], int *i){
             return ERR;
         }
         first *= 16;
-        first += (a - '0');
+        if(a >= '0' && a <='9'){
+            first += (a - '0');
+        }
+        else if(a >= 'A' && a <= 'F'){
+            first += (a - 'A') + 10;
+        }
     }
     return first;
 }
@@ -298,7 +237,12 @@ int middle_number_extractor(char inst_input[20], int *i){
             return ERR;
         }
         middle *= 16;
-        middle += (a - '0');
+        if(a >= '0' && a <='9'){
+            middle += (a - '0');
+        }
+        else if(a >= 'A' && a <= 'F'){
+            middle += (a - 'A') + 10;
+        }
     }
     return middle;
 }
@@ -312,15 +256,28 @@ int last_number_extractor(char inst_input[20], int *i){
             return;
         }
         last *= 16;
-        last += (a - '0');
+        if(a >= '0' && a <='9') 
+            last += (a - '0');
+    
+        else if(a >= 'A' && a <= 'F')
+            last += (a - 'A') + 10;
+        
     }
     return last;
 }
 
-void rest_and_blank(char inst_input[20], int* i){
+int rest_and_blank(char inst_input[20], int* i){
     if(inst_input[(*i)++] != ','){
         return ERR;
     }
 
     while (inst_input[++(*i)] == ' ');
+    return 1;
+}
+
+void argument_extractor(char inst_input[20], char des[20], int *i){
+    while (inst_input[*i] != ' ')
+        des[*i] = inst_input[(*i)++];
+
+    des[(*i)++] = '\0';
 }

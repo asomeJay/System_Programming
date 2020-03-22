@@ -8,4 +8,5 @@ void dump2(int, int);
 
 void edit(int, int);
 void fill(int, int, int);
+void reset();
 #endif

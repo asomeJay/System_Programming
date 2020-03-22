@@ -133,4 +133,12 @@ void fill(int start, int end, int value){
         memory[i] = value;
     }
 }
+
+void reset(){
+    int i;
+    for (i = 0; i < (1 << 20); i++)
+    {
+        memory[i] = 0;
+    }
+}
 #endif

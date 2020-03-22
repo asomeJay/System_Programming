@@ -20,7 +20,6 @@ void dump(int dump_start, int dump_end, int flag){
             printf("FUNCTION 'DUMP' RANGE ERROR\n");
             return;
         }
-        
         dump2(dump_start, dump_end);
         return;
     }
@@ -78,9 +77,7 @@ void dump2(int dump_start, int dump_end){
     s_f = 0;
     e_f = 0;
     while (dump_start <= dump_end)
-    {
-        printf("dump_start : %d\n", dump_start);
-        
+    {        
         printf("%04X0 ", (int)(dump_start / 16));
         if (s_f == 0)
         {
@@ -88,14 +85,15 @@ void dump2(int dump_start, int dump_end){
                 printf("   ");
             s_f = 1;
         }
-        dump_start++;
-        while (dump_start % 16 != 0 && dump_start <= dump_end)
-        {
+        for (i = dump_start % 16; i < 16 && dump_start <= dump_end; i++){
             printf("%02X ", memory[dump_start++]);
         }
+            /*while (dump_start % 16 != 0 && dump_start <= dump_end)
+            {
+            
+            }*/
 
         if(dump_start > dump_end){
-            printf("%02X ", memory[dump_start++]);
             while (dump_start % 16 != 0)
             {
                 printf("   ");
@@ -121,6 +119,18 @@ void dump2(int dump_start, int dump_end){
             dump_start++;
         }
         printf("\n");
+    }
+}
+
+void edit(int address, int value){
+    memory[address] = value;
+}
+
+void fill(int start, int end, int value){
+    int i;
+    for (i = start; i <= end; i++)
+    {
+        memory[i] = value;
     }
 }
 #endif

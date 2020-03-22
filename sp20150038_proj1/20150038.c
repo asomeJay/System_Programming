@@ -96,35 +96,46 @@ void operation(char inst_input[20], int blank){
         return;
     }
     else if(blank == 2){
+        /* Argument Extractor */
         char blank1[20];
         int i = 0;
+
         while (inst_input[i] != ' ')
-        {
             blank1[i] = inst_input[i++];
-        }
         i++;
+        /* Argument Extractor */
 
         if(!strcmp(inst_input, "edit") || !strcmp(inst_input, "e"))
             return;     
+            
         else if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
         {
+            int in2, in3;
             char blank2[20], blank3[20];
+            in2 = in3 = 0;
+
             while (inst_input[i] != ' ')
             {   if(inst_input[i] < '0' || inst_input[i] >'9'){
                     printf("DUMP ERROR\n");
                     return;
                 }
-                blank2[i] = inst_input[i++];
+                blank2[in2++] = inst_input[i++];
             }
-            while(inst_input[i] != '\0'){
+            blank2[in2] = '\0';
+
+            while (inst_input[++i] == ' ')
+                ;
+
+            while (inst_input[i] != '\0')
+            {
                 if(inst_input[i] < '0' || inst_input[i] >'9'){
                     printf("DUMP ERROR\n");
                     return;
                 }
-                blank3[i] = inst_input[i++];
+                blank3[in3++] = inst_input[i++];
             }
-            blank3[i] = '\0';
-
+            blank3[in3] = '\0';
+            
             list_push(inst_input);
             dump(atoi(blank2), atoi(blank3), 2);
         }

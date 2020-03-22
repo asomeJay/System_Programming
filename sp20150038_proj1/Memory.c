@@ -74,51 +74,53 @@ void dump(int dump_start, int dump_end, int flag){
 }
 
 void dump2(int dump_start, int dump_end){
-    int i, j;
+    int i, j, s_f, e_f;
+    s_f = 0;
+    e_f = 0;
     while (dump_start <= dump_end)
     {
-        int s_f, e_f;
-        s_f = 0;
-        e_f = 0;
-
-        printf("%04X0 ", dump_start / 16);
+        printf("dump_start : %d\n", dump_start);
+        
+        printf("%04X0 ", (int)(dump_start / 16));
         if (s_f == 0)
         {
             for (i = 0; i < dump_start % 16; i++)
+                printf("   ");
+            s_f = 1;
+        }
+        dump_start++;
+        while (dump_start % 16 != 0 && dump_start <= dump_end)
+        {
+            printf("%02X ", memory[dump_start++]);
+        }
+
+        if(dump_start > dump_end){
+            printf("%02X ", memory[dump_start++]);
+            while (dump_start % 16 != 0)
             {
                 printf("   ");
-                }
-                s_f = 1;
+                dump_start++;
             }
-
-            while(dump_start % 16 != 0 && dump_start <= dump_end){
-                printf("%02X ", memory[dump_start++]);
-            }
+        }
+        printf(" ; ");
+        dump_start -= 16;
+        for (j = 0; j < 16; j++)
+        {
             if(dump_start > dump_end){
-                while(dump_start % 16 != 0){
-                    printf("   ");
-                    dump_start++;
-                }
+                printf(".");
+                continue;
             }
-            printf(" ; ");
-            dump_start -= 16;
-
-            for(j = 0; j < 16; j++){
-                if(dump_start > dump_end){
-                    printf(".");
-                    dump_start++;
-                }
-                if(memory[dump_start] < 0x20 || memory[dump_start] > 0x7E)
-                {
-                    printf(".");
-                    dump_start++;
-                }
-                else 
-                {
-                    printf("%c", memory[dump_start++]);
-                }
+            if(memory[dump_start] < 0x20 || memory[dump_start] > 0x7E)
+            {
+                printf(".");
             }
-            printf("\n");
+            else 
+            {
+                printf("%c", memory[dump_start]);
+            }
+            dump_start++;
+        }
+        printf("\n");
     }
 }
 #endif

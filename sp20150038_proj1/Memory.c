@@ -1,6 +1,3 @@
-#ifndef __Memory_C__
-#define __Memory_C__
-
 #include "Memory.h"
 #include <stdio.h>
 
@@ -88,11 +85,6 @@ void dump2(int dump_start, int dump_end){
         for (i = dump_start % 16; i < 16 && dump_start <= dump_end; i++){
             printf("%02X ", memory[dump_start++]);
         }
-            /*while (dump_start % 16 != 0 && dump_start <= dump_end)
-            {
-            
-            }*/
-
         if(dump_start > dump_end){
             while (dump_start % 16 != 0)
             {
@@ -141,4 +133,3 @@ void reset(){
         memory[i] = 0;
     }
 }
-#endif

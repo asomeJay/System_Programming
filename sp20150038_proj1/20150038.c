@@ -15,23 +15,25 @@
 #include "Shell.h"
 
 #define ERR -987654321
+#define MAX_STR 255
 
-void operation(char inst_input[20], int blank);
+void operation(char inst_input[MAX_STR], int blank);
 bool is_range(char a);
-int first_number_extractor(char inst_input[20], int *i);
-int middle_number_extractor(char inst_input[20], int* i);
-int last_number_extractor(char inst_input[20], int *i);
-int rest_and_blank(char inst_input[20], int *i);
-void argument_extractor(char src[20], char des[20], int *i);
+int first_number_extractor(char inst_input[MAX_STR], int *i);
+int middle_number_extractor(char inst_input[MAX_STR], int* i);
+int last_number_extractor(char inst_input[MAX_STR], int *i);
+int rest_and_blank(char inst_input[MAX_STR], int *i);
+void argument_extractor(char src[MAX_STR], char des[MAX_STR], int *i);
 
 int main(void)
 {
     init();
+    opcode_make();
 
     while (1)
     {
         int i, blank;
-        char inst_input[20];
+        char inst_input[MAX_STR];
 
         printf("sicsim> "); // 계속 출력하는 것
         blank = in(inst_input);    // inst_input으로 명령 받고 명령어에 빈칸 몇 갠지 return 받는다.
@@ -44,7 +46,7 @@ int main(void)
 /* 명령어 들어온 걸로 실제 그 함수를 실행한다. 
 실행할 때마다 history list에 저장한다.*/
 
-void operation(char inst_input[20], int blank){
+void operation(char inst_input[MAX_STR], int blank){
     if(blank == 0){
         if(!strcmp(inst_input, "dir") || !strcmp(inst_input, "d")){
             list_push(inst_input);
@@ -64,6 +66,7 @@ void operation(char inst_input[20], int blank){
         }
         else if(!strcmp(inst_input, "opcodelist")){
             list_push(inst_input);
+            opcodelist();
         }
         else if(!strcmp(inst_input, "quit") || !strcmp(inst_input, "q")){  // quit
             quit();
@@ -74,43 +77,43 @@ void operation(char inst_input[20], int blank){
         }
     }
     else if (blank == 1){
-        char blank1[20];
+        char blank1[MAX_STR];
         int i = 0;
         argument_extractor(inst_input, blank1, &i);
 
         if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
         { 
             list_push(inst_input);
-
-            char blank2[20];
-            int j = 0;
-            while (inst_input[i] != '\0')
-            {   if(inst_input[i] < '0' || inst_input[i] > '9'){
-                    printf("DUMP ERROR\n");
-                    return;
-                }
-                blank2[j++] = inst_input[i++];
+            int start_point = last_number_extractor(inst_input, &i);
+            if(start_point == ERR){
+                printf("DUMP 'START' ERROR\n");
+                return;
             }
-            blank2[j] = '\0';
-            dump(atoi(blank2), -1, 1);
+            dump(start_point, -1, 1);
         }
 
-        else if(!strcmp(inst_input, "opcode mnemonic")){
+        else if(!strcmp(blank1, "opcode")){
             list_push(inst_input);
-            //opcode_mnemonic();
+            int j = 0;
+            char inkey[MAX_STR];
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey[j++] = inst_input[i++];
+            }
+            inkey[j] = '\0';
+            opcode_mnemonic(inkey);
+            return;
         }
-
-        return;
     }
     else if(blank == 2){
-        char blank1[20];
+        char blank1[MAX_STR];
         int i = 0;
         argument_extractor(inst_input, blank1, &i);
 
         if (!strcmp(blank1, "edit") || !strcmp(blank1, "e"))
         {
             int address, value;
-            printf("EDIT START\n");
 
             address = first_number_extractor(inst_input, &i);
             if(address == ERR){
@@ -122,6 +125,7 @@ void operation(char inst_input[20], int blank){
                 printf("EDIT ERROR ADDRESS <---> VALUE\n");
                 return;
             }
+            
             value = last_number_extractor(inst_input, &i);
             if(value == ERR){
                 printf("EDIT ERROR VALUE \n");
@@ -129,7 +133,6 @@ void operation(char inst_input[20], int blank){
             }
             list_push(inst_input);
             edit(address, value);
-            printf("EDIT END\n");
         }
 
         else if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))
@@ -157,13 +160,9 @@ void operation(char inst_input[20], int blank){
     }
 
     else if(blank == 3){
-        char blank1[20];
+        char blank1[MAX_STR];
         int i = 0;
-
-        while (inst_input[i] != ' ')
-            blank1[i] = inst_input[i++];
-
-        blank1[i++] = '\0';
+        argument_extractor(inst_input, blank1, &i);
 
         if(!strcmp(blank1, "fill") || !strcmp(blank1, "f")){
             int start, end, value;
@@ -208,7 +207,7 @@ bool is_range(char a){
     return true;
 }
 
-int first_number_extractor(char inst_input[20], int *i){
+int first_number_extractor(char inst_input[MAX_STR], int *i){
     int first = 0;
     while (inst_input[*i] != ' ' && inst_input[*i] != ',')
     {
@@ -228,7 +227,7 @@ int first_number_extractor(char inst_input[20], int *i){
     return first;
 }
 
-int middle_number_extractor(char inst_input[20], int *i){
+int middle_number_extractor(char inst_input[MAX_STR], int *i){
     int middle = 0;
     while (inst_input[*i] != ' ' && inst_input[*i] != ',')
     {
@@ -247,7 +246,7 @@ int middle_number_extractor(char inst_input[20], int *i){
     return middle;
 }
 
-int last_number_extractor(char inst_input[20], int *i){
+int last_number_extractor(char inst_input[MAX_STR], int *i){
     int last = 0;
     while (inst_input[*i] != '\0')
     {
@@ -266,7 +265,7 @@ int last_number_extractor(char inst_input[20], int *i){
     return last;
 }
 
-int rest_and_blank(char inst_input[20], int* i){
+int rest_and_blank(char inst_input[MAX_STR], int* i){
     if(inst_input[(*i)++] != ','){
         return ERR;
     }
@@ -275,7 +274,7 @@ int rest_and_blank(char inst_input[20], int* i){
     return 1;
 }
 
-void argument_extractor(char inst_input[20], char des[20], int *i){
+void argument_extractor(char inst_input[MAX_STR], char des[MAX_STR], int *i){
     while (inst_input[*i] != ' ')
         des[*i] = inst_input[(*i)++];
 

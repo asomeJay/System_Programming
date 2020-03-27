@@ -1,17 +1,19 @@
-#ifndef __Basic_C__
-#define __Basic_C__
-
 #include "Basic.h"
+
+#include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_STR 255 
 
 linked_list *start = NULL;
 linked_list *last = NULL;
-
 
 void init() {
     list_make();
 }
 
-int in(char inst_input[20]) {
+int in(char inst_input[MAX_STR]) {
     int blank = 0, inst_index = 0;
     char c;
     while ((c = getchar()) != '\n')
@@ -97,7 +99,7 @@ void help(){
     return;
 }
 
-void list_push(char inst_[20]) {
+void list_push(char inst_[MAX_STR]) {
     linked_list *t = (linked_list *)malloc(sizeof(linked_list));
     t->next = NULL;
     t->inst = (char *)malloc(sizeof(char) * 20);
@@ -114,4 +116,3 @@ void list_push(char inst_[20]) {
     return;
 }
 
-#endif

@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #define MAX_STR 255 
 
 linked_list *start = NULL;
@@ -45,7 +49,7 @@ void list_make(){
 void dir(){
     DIR *dirp;
     struct dirent *now;
-
+    struct stat buf;
     now = (struct dirent *)malloc(sizeof(struct dirent));
 
     dirp = opendir(".");
@@ -54,21 +58,18 @@ void dir(){
         printf("dirp Error\n");
         exit(-1);
     }
-
     while((now = readdir(dirp)) != NULL) {
-        if(now->d_type == 8){
+        lstat(now->d_name, &buf);
+        if (S_ISDIR(buf.st_mode))
             printf("%s/\t", now->d_name);
-        }
-
-        else if((strstr(now->d_name, ".exe") != NULL) || 
-        (strstr(now->d_name, ".out") != NULL)){
+        else if(strstr(now->d_name, ".exe") != NULL)
             printf("%s*\t", now->d_name);
-        }
-        else{
+        else if(strstr(now->d_name, ".out") != NULL)
+            printf("%s*\t", now->d_name);
+        else
             printf("%s\t", now->d_name);
-        }
     }
-    close(dirp);
+    closedir(dirp);
     printf("\n");
     return;
 }

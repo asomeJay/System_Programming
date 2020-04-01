@@ -14,9 +14,10 @@ linked_list *start = NULL;
 linked_list *last = NULL;
 
 void init() {
-    list_make();
+    list_make(); // help 같은 거 할떄 list를 미리 만들어둬야지. 
 }
 
+/* 명령어를 받아들이자. c++의 string이 그리워지는 밤입니다. */
 int in(char inst_input[MAX_STR]) {
     int blank = 0, inst_index = 0;
     char c;
@@ -31,6 +32,7 @@ int in(char inst_input[MAX_STR]) {
     return blank;
 }
 
+/* help 명령어를 위해 리스트를 만들어줘야지 후후 */
 void list_make(){
     inst_list = (char **)malloc(sizeof(char *) * 10);
 
@@ -46,6 +48,7 @@ void list_make(){
     inst_list[9] = "opcodelist";
 }
 
+
 void dir(){
     DIR *dirp;
     struct dirent *now;
@@ -60,25 +63,27 @@ void dir(){
     }
     while((now = readdir(dirp)) != NULL) {
         lstat(now->d_name, &buf);
-        if (S_ISDIR(buf.st_mode))
-            printf("%s/\t", now->d_name);
+        if (S_ISDIR(buf.st_mode)) // DIRECTORY 면 \\ << 얘 붙여줄건데...
+            printf("%s/\t", now->d_name); 
+            /* 실행파일이면 * 붙여줄거임 ㅎ*/
         else if(strstr(now->d_name, ".exe") != NULL)
             printf("%s*\t", now->d_name);
         else if(strstr(now->d_name, ".out") != NULL)
             printf("%s*\t", now->d_name);
         else
+        /*나머지는 그냥~ 그냥~ 그냥!*/
             printf("%s\t", now->d_name);
     }
-    closedir(dirp);
+    closedir(dirp); // 열었으면 닫는건 필수
     printf("\n");
     return;
 }
 
-void quit(){
+void quit(){ // 시스템 종료
     exit(0);
 }
 
-void history(){
+void history(){ // 지금까지 쌓아온 리스트를 그대로 출력하겠습니다. 
     int cnt = 1;
     linked_list *i;
     for (i = start; i != NULL; i = i->next, cnt++)
@@ -92,7 +97,7 @@ void history(){
     return;
 }
 
-void help(){
+void help(){ /* inst_list에 저장한 문자열을 출력합니다. */
     int i;
     for (i = 0; i < 10; i++){
         printf("%s\n", inst_list[i]);
@@ -100,7 +105,7 @@ void help(){
     return;
 }
 
-void list_push(char inst_[MAX_STR]) {
+void list_push(char inst_[MAX_STR]) { // 명령어가 입력될 때마다 history를 위한 리스트에 넣을거여요! 
     linked_list *t = (linked_list *)malloc(sizeof(linked_list));
     t->next = NULL;
     t->inst = (char *)malloc(sizeof(char) * 20);

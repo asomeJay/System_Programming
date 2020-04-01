@@ -8,15 +8,13 @@ void opcode_make(){
     hash_init();
     const char *mode = "r";
     FILE *fp = fopen("opcode.txt", "r");
-    
+    //opcode.txt를 읽기 모드로 엽니다. 
     if (fp == NULL)
     {
         printf("FILE READ ERROR\n");
         return;
     }
-    
-    
-//프로그래밍 과제
+    // 파일 끝까지 읽어가면서 OPCODE 정보를 value와 temp에 저장합니다.
     while(!feof(fp)){
         int i, value = 0;
         char *str, *sp;
@@ -53,12 +51,13 @@ void opcode_make(){
             temp[j++] = buffer[i++];
         }
         temp[j] = '\0';
-        hash_add(temp, value);
+        hash_add(temp, value); // 읽은 값을 바탕으로 해쉬에 추가합니다. 
     }
 
-    fclose(fp);
+    fclose(fp); // 역할을 다했으니 파일을 닫습니다. 
 }
 
+/* 해쉬 테이블을 초기화합니다. */
 void hash_init(){
     int i;
     for (i = 0; i < MAX_HASH; i++){
@@ -156,7 +155,7 @@ void opcode_mnemonic(const char *inkey){
     printf("opcode is %X\n", opcode_candidate);
 }
 
-
+/* 프로그램 시작할 떄 opcode list를 만드는데 그걸 잘 읽도록 합니다 */ 
 void opcodelist(){
     int i;
     for (i = 0; i < 20; i++){

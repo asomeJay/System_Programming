@@ -6,7 +6,6 @@
 
 void opcode_make(){
     hash_init();
-    const char *mode = "r";
     FILE *fp = fopen("opcode.txt", "r");
     //opcode.txt를 읽기 모드로 엽니다. 
     if (fp == NULL)
@@ -17,7 +16,7 @@ void opcode_make(){
     // 파일 끝까지 읽어가면서 OPCODE 정보를 value와 temp에 저장합니다.
     while(!feof(fp)){
         int i, value = 0;
-        char *str, *sp;
+        char *str;
         char buffer[255], temp[255];
         for (i = 0; i < 255; i++){
             buffer[i] = temp[i] = 0;
@@ -126,10 +125,10 @@ int hash_find(const char *inkey){
     return cur->value;
 }
 
+/* 입력받은 문자열을 바탕으로 해쉬 값을 만들어서 return 한다. */
 
 int hash_function(const char *str){
     int hash = 401;
-    int i;
 
     while (*str != '\0'){
         hash = ((hash << 4) + (int)(*str)) % MAX_HASH;

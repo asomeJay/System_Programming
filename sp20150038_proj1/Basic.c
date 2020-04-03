@@ -8,8 +8,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAX_STR 255 
-
 linked_list *start = NULL;
 linked_list *last = NULL;
 

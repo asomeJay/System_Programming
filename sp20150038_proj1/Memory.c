@@ -1,8 +1,6 @@
 #include "Memory.h"
 #include <stdio.h>
 
-int address = 0; // 주소의 시작은 0입니닷
-
 void dump(int dump_start, int dump_end, int flag){
     int i, j;
 

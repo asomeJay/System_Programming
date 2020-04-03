@@ -12,18 +12,7 @@
 #include "Basic.h"
 #include "Memory.h"
 #include "Opcode.h"
-#include "Shell.h"
-
-#define ERR -987654321
-#define MAX_STR 255
-
-void operation(char inst_input[MAX_STR], int blank);
-bool is_range(char a);
-int first_number_extractor(char inst_input[MAX_STR], int *i);
-int middle_number_extractor(char inst_input[MAX_STR], int* i);
-int last_number_extractor(char inst_input[MAX_STR], int *i);
-int rest_and_blank(char inst_input[MAX_STR], int *i);
-void argument_extractor(char src[MAX_STR], char des[MAX_STR], int *i);
+#include "20150038.h"
 
 int main(void)
 {
@@ -32,7 +21,7 @@ int main(void)
 
     while (1) // quit을 받을 때까지 계속 명령어를 받습니다. 
     {
-        int i, blank;
+        int blank;
         char inst_input[MAX_STR];
 
         printf("sicsim> "); // 계속 출력하는 것
@@ -211,7 +200,7 @@ void operation(char inst_input[MAX_STR], int blank){
 
 /* 매개변수가 정상적인지 체크한다. */
 bool is_range(char a){
-    if(!((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F'))){
+    if(!((a >= '0' && a <= '9') ||(a >= 'a' && a <= 'f')|| (a >= 'A' && a <= 'F'))){
         return false;
     }
     return true;
@@ -230,6 +219,9 @@ int first_number_extractor(char inst_input[MAX_STR], int *i){
         first *= 16;
         if(a >= '0' && a <='9'){
             first += (a - '0');
+        }
+        else if(a >= 'a' && a <= 'f'){
+            first+= (a - 'a') + 10;
         }
         else if(a >= 'A' && a <= 'F'){
             first += (a - 'A') + 10;
@@ -251,6 +243,9 @@ int middle_number_extractor(char inst_input[MAX_STR], int *i){
         if(a >= '0' && a <='9'){
             middle += (a - '0');
         }
+        else if(a >= 'a' && a <= 'f'){
+            middle += (a - 'a') + 10;
+        }
         else if(a >= 'A' && a <= 'F'){
             middle += (a - 'A') + 10;
         }
@@ -265,12 +260,13 @@ int last_number_extractor(char inst_input[MAX_STR], int *i){
     {
         char a = inst_input[(*i)++];
         if(!is_range(a)){
-            return;
+            return ERR;
         }
-        last *= 16;
+        last *= 16; // 16진수라서 곱해줍니당
         if(a >= '0' && a <='9') 
             last += (a - '0');
-    
+        else if(a >= 'a' && a <= 'f')
+            last += (a - 'a') + 10;
         else if(a >= 'A' && a <= 'F')
             last += (a - 'A') + 10;
         
@@ -288,7 +284,9 @@ int rest_and_blank(char inst_input[MAX_STR], int* i){
     return 1;
 }
 
-/* 명령어 뽑아내기 */
+/* 명령어 뽑아내기 
+inst_input에서 뽑아내서 des에 넣을 것이다. 
+*/
 void argument_extractor(char inst_input[MAX_STR], char des[MAX_STR], int *i){
     while (inst_input[*i] != ' ')
         des[*i] = inst_input[(*i)++];

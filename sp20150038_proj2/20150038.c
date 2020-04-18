@@ -13,6 +13,7 @@
 #include "Memory.h"
 #include "Opcode.h"
 #include "20150038.h"
+#include "Assemble.h"
 
 int main(void)
 {
@@ -64,6 +65,10 @@ void operation(char inst_input[MAX_STR], int blank){
         else if(!strcmp(inst_input, "reset")){
             list_push(inst_input);
             reset();
+        }
+        else if(!strcmp(inst_input, "symbol")){
+            list_push(inst_input);
+            symbol();
         }
     }
     else if (blank == 1){ //dump start처럼 띄어쓰기가 1개!

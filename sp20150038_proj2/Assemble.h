@@ -7,17 +7,17 @@
 #define OBJCODE 60
 
 typedef struct sym_element{
-    char symbol[SYMBOL];
+    char * symbol ;
     int addr;
 } element;
 
 typedef struct _element{
     char * symbol;
-    char *op;
+    char * op;
 } op_element;
 
 element sym_table[200];
-op_element opcode[100];
+op_element opcode[200];
 
 //int sym_index = 0;
 /* filename을 받아서 그 파일을 연다. 
@@ -28,12 +28,13 @@ void type(char * filename);
 void assemble(char * filename);
 void symbol();
 void push_symbol(int addr, char [LINE]);
-void init();
+void assemble_init();
 void address_increase(int * addr, char [LINE], char[LINE]);
 
+int stoi(char *);
 int symbol_find(char[LINE]);
 int parse_line(char[3][LINE], char[LINE]);
 
-char *obj_make(int, char[LINE], char[LINE]);
+char *obj_make(int, char[LINE], char[LINE], char *);
 char * dex_to_bit(char);
 #endif

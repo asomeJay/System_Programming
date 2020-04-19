@@ -18,7 +18,8 @@
 int main(void)
 {
     init();     // 초기화 작업을 합니다.
-    opcode_make();  // 프로그램이 시작될 때 opcode list를 만들어줍니다. 
+    assemble_init();
+    opcode_make(); // 프로그램이 시작될 때 opcode list를 만들어줍니다.
 
     while (1) // quit을 받을 때까지 계속 명령어를 받습니다. 
     {
@@ -67,6 +68,7 @@ void operation(char inst_input[MAX_STR], int blank){
             reset();
         }
         else if(!strcmp(inst_input, "symbol")){
+            printf("SYMBOLE\n");
             list_push(inst_input);
             symbol();
         }
@@ -106,6 +108,34 @@ void operation(char inst_input[MAX_STR], int blank){
             inkey[j] = '\0';
             opcode_mnemonic(inkey);
             return;
+        }
+        else if(!strcmp(blank1, "assemble")){
+            printf("ASSEMB\n");
+            list_push(inst_input);
+            int j = 0;
+            char inkey[MAX_STR];
+
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey[j++] = inst_input[i++];
+            }
+            printf("%s\n", inkey);
+            assemble(inkey);
+        }
+        else if(!strcmp(blank1, "type")){
+            printf("TYPE\n");
+            list_push(inst_input);
+            int j = 0;
+            char inkey[MAX_STR];
+
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey[j++] = inst_input[i++];
+            }
+            printf("%s\n", inkey);
+            type(inkey);
         }
     }
     else if(blank == 2){ // edit address, value 처럼 빈 칸이 두개! 

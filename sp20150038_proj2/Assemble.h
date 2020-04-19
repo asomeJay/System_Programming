@@ -1,13 +1,23 @@
 #ifndef __Assemble_H__
 #define __Assemble_H__
 
+#define SYMBOL 7
+#define INSTRUCTION 60
+#define LINE 60
+#define OBJCODE 60
+
 typedef struct sym_element{
-    char symbol[7];
+    char symbol[SYMBOL];
     int addr;
 } element;
 
+typedef struct _element{
+    char * symbol;
+    char *op;
+} op_element;
+
 element sym_table[200];
-char third[
+op_element opcode[100];
 
 //int sym_index = 0;
 /* filename을 받아서 그 파일을 연다. 
@@ -17,7 +27,13 @@ char third[
 void type(char * filename);
 void assemble(char * filename);
 void symbol();
-void push_symbol(int addr, char [60]);
-int parse_line(char [3][60], char [60]);
+void push_symbol(int addr, char [LINE]);
+void init();
+void address_increase(int * addr, char [LINE], char[LINE]);
 
+int symbol_find(char[LINE]);
+int parse_line(char[3][LINE], char[LINE]);
+
+char *obj_make(int, char[LINE], char[LINE]);
+char * dex_to_bit(char);
 #endif

@@ -478,41 +478,58 @@ char * obj_make(int PC, char operation[LINE], char operand[LINE]){
 
 /* Step 3 : Displacement or Address */
     if(operation[0] == '+') {// format 4
+        int temp = 0;
+        int format4_addr[5] = {'0'};
+
         if(operand[0] == '#')  { // Immediate Addressing n=0, i=1
-            int temp = 0;
-            int format4_addr[5] = {'0'};
-
-            for (i = 1; operand[i] != '\0'; i++)  {
-                temp *= 10;
-                temp += (operand[i] - '0');
+            if(operand[1] >= '0' && operand[1] <= '9')  {
+                for (i = 1; operand[i] != '\0'; i++)  {
+                    temp *= 10;
+                    temp += (operand[i] - '0');
+                }
             }
+            else {
+                char new_op[LINE];
+                for (i = 1; operand[i] != '\0'; i++){
+                    new_op[i - 1] = operand[i];
+                }
+                new_op[i] = '\0';
+                temp = symbol_find(new_op);            
+            }       
+        }
 
-            if (temp >= (int)pow(16, 4.0) ){
+        else 
+            temp = symbol_find(operand);
+
+        /* Int Address Value => Char Address Value */
+        if (temp >= (int)pow(16, 4.0) ){
                 format4_addr[0] = temp / pow(16, 4.0);
                 temp -= format4_addr[0];
                 format4_addr[0] += '0';
-            }
-            if(temp >= (int) pow(16, 3.0)){
-                format4_addr[1] = temp / pow(16, 3.0);
-                temp -= format4_addr[1];
-                format4_addr[1] += '0';
-            }
-            if(temp >= (int) pow(16, 2.0)){
-                format4_addr[2] = temp / pow(16, 2.0);
-                temp -= format4_addr[2];
-                format4_addr[2] += '0';
-            }
-            if(temp >= (int) pow(16, 1.0)){
-                format4_addr[3] = temp / pow(16, 1.0);
-                temp -= format4_addr[3];
-                format4_addr[3] += '0';
-            }
-            format4_addr[4] = temp + '0';
         }
+        if(temp >= (int) pow(16, 3.0)){
+            format4_addr[1] = temp / pow(16, 3.0);
+            temp -= format4_addr[1];
+            format4_addr[1] += '0';
+        }
+        if(temp >= (int) pow(16, 2.0)){
+            format4_addr[2] = temp / pow(16, 2.0);
+            temp -= format4_addr[2];
+            format4_addr[2] += '0';
+        }
+        if(temp >= (int) pow(16, 1.0)){
+            format4_addr[3] = temp / pow(16, 1.0);
+            temp -= format4_addr[3];
+            format4_addr[3] += '0';
+        }
+        format4_addr[4] = temp + '0';
+    }
 
-        else  {
-            
-        }
+    else if (!strcmp(operation, "CLEAR") || !strcmp(operation, "COMPR")){ // format 2
+        
+    }
+    else { // format 3
+
     }
 
 

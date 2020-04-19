@@ -112,7 +112,12 @@ void assemble(char * filename){
 
         blank = parse_line(parsed_line, src_line);
         // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
-
+        if (strstr(parsed_line[0], ".")){
+            fprintf(f_lst, "%7d                %s\n",
+            line_number, src_line);
+            continue;
+        }
+        printf("blank : %d\n", blank);
         // START No Symbol
         if (!strcmp(parsed_line[1], "START"))
         {
@@ -150,7 +155,7 @@ void assemble(char * filename){
             /* 현재 Instruction 종류에 따라 address 증가시킨다.*/
         }
         else  {
-            printf("Assemble Parsing ERROR\n");
+            printf("Assemble Parsing ERROR : %s\n", parsed_line[0]);
             return;
         }
 
@@ -182,10 +187,14 @@ void assemble(char * filename){
             break;
         }
         // 소스 파일에서 한 줄 읽었으면 명령어로 바꿔줘야한다.
-
+        
         blank = parse_line(parsed_line, src_line);
         // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
-
+        if (parsed_line[0] == "."){
+            fprintf(f_lst, "%7d                %s\n",
+            line_number, src_line);
+            continue;
+        }
         // START - Obj X
         if (!strcmp(parsed_line[0], "COPY"))  {
             fprintf(f_lst, "%7d %04X %4s %7s %20s %30s ",
@@ -226,7 +235,6 @@ void assemble(char * filename){
 }
 
 void symbol(){
-    printf("SYMBOL\n");
    /* 정렬하는 부분 */
    /* 알파벳 순으로 정렬하자... */
     int i, j;
@@ -258,24 +266,27 @@ void symbol(){
     return;
 }
 
-int parse_line(char parse[3][60], char origin[60]){
+int parse_line(char parse[3][LINE], char origin[LINE]){
     int i = 0, j = 0, k = 0, blank = 0;
 // 제일 앞이 빈 공간인 거 다 제껴부려~~
     while(origin[i] == ' '){
         i++;
         continue;
     }
-    for(; origin[i] != '\0'; i++){
-    
+
+    for(; origin[i] != '\0';){ // To the end of String, save the each word.
         if(origin[i] != ' '){
             parse[j][k] = origin[i];
             k++;
+            i++;
         }
         else {
             parse[j][k] = '\0';
             blank++;
             j++; 
             k = 0;
+            while(origin[i] == ' ' && origin[i] != '\0')
+                i++;
         }
     }
     return blank;

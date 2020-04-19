@@ -68,7 +68,6 @@ void operation(char inst_input[MAX_STR], int blank){
             reset();
         }
         else if(!strcmp(inst_input, "symbol")){
-            printf("SYMBOLE\n");
             list_push(inst_input);
             symbol();
         }
@@ -110,7 +109,6 @@ void operation(char inst_input[MAX_STR], int blank){
             return;
         }
         else if(!strcmp(blank1, "assemble")){
-            printf("ASSEMB\n");
             list_push(inst_input);
             int j = 0;
             char inkey[MAX_STR];

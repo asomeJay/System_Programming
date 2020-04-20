@@ -4,4 +4,4 @@ all: 20150038.out
 			gcc -Wall -g -o 20150038.out Basic.c Memory.c  20150038.c Opcode.c Assemble.c
 
 clean:
-			rm 20150038.out
+			rm 20150038.out *.lst *.obj

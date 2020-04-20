@@ -16,7 +16,7 @@ void assemble_init(){
 
     opcode[0].symbol = "STL"; opcode[0].op = "14";
     opcode[1].symbol = "LDB"; opcode[1].op = "68";
-    opcode[2].symbol = "+JUSB"; opcode[2].op = "48";
+    opcode[2].symbol = "+JSUB"; opcode[2].op = "48";
     opcode[3].symbol = "LDA"; opcode[3].op = "00";
     opcode[4].symbol = "COMP"; opcode[4].op = "28";
     opcode[5].symbol = "JEQ"; opcode[5].op = "30";
@@ -135,6 +135,14 @@ void assemble(char * filename){
         if(!strcmp(parsed_line[0], "BASE")){
             continue;
         }
+        else if(!strcmp(parsed_line[0], "COMPR")){
+            address += 2;
+            continue;
+        }
+        else if(!strcmp(parsed_line[0], "LDCH") || !strcmp(parsed_line[0], "STCH")){
+            address += 3;
+            continue;
+        }
         if (blank == 1)  { // No Symbol
             address_increase(&address, parsed_line[0], parsed_line[1]);
         }
@@ -142,12 +150,6 @@ void assemble(char * filename){
             // Push the address and Label
             push_symbol(address, parsed_line[0]);
             address_increase(&address, parsed_line[1], parsed_line[2]);
-            
-            //obj_code = obj_make(address, parsed_line[1], parsed_line[2]);
-            // 형식에 맞춰서 lst 파일에 넣는다.
-            //fprintf(f_lst, "%7d %04X %4s %7s %20s %30s ",
-            //       line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj_code);
-            /* 현재 Instruction 종류에 따라 address 증가시킨다.*/
         }
         else if(blank==0){
             address += 3;
@@ -159,8 +161,8 @@ void assemble(char * filename){
 
     }
     fclose(fp);
-    printf("PASS 1 END\n");
-    /////////////////////////////////////////////////////////////////////
+    
+    /////////////////////////////////////////////////////////////////////////////////
 
     /* 
     PASS2 : Although sleep come... but We must make OBJCODE!!!!! 
@@ -178,10 +180,11 @@ void assemble(char * filename){
     line_number = 0; 
 
     while(1)  {
-        char src_line[LINE], parsed_line[3][LINE];
+        char src_line[LINE], parsed_line[3][LINE], *obj;
         int blank;
         line_number += 5;
-
+        obj = (char * ) malloc(sizeof(char) * INSTRUCTION);
+    
         if (fgets(src_line, LINE, fp) == NULL){
             // NULL 인 경우 왠만하면 파일 끝에 다다랐다는 것이므로 while 문을 종료한다.
             break;
@@ -198,49 +201,27 @@ void assemble(char * filename){
         
         // START - Obj X
         if (!strcmp(parsed_line[0], "COPY"))  {
-            fprintf(f_obj, "H%s  00000000000001077", parsed_line[0]);
-            printf("%5d %04X %4s %7s %10s\n",
-            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2]);
+            print_assemble(line_number, address, parsed_line[0], parsed_line[1], parsed_line[2]," ");
             continue;
         }
 
         // BASE - Obj X
-        if(!strcmp(parsed_line[0], "BASE"))  {
-            fprintf(f_lst, "%5d %04X %4s %7s %10s %10s ",
-            line_number, address, " ", parsed_line[0], parsed_line[1], " ");
-            printf("%5d %04X %4s %7s %10s %10s\n",
-            line_number, address, " ", parsed_line[0], parsed_line[1], " ");
+        if(!strcmp(parsed_line[0], "BASE") || !strcmp(parsed_line[0], "END"))  {
+            printf("%-5d        %4s %7s %10s %10s\n",
+                   line_number, " ", parsed_line[0], parsed_line[1], " ");
             continue;
         }
-        printf("blank : %d\n", blank);
-
+        
         if (blank == 1)  { // No Symbol
-            char *obj = (char * ) malloc(sizeof(char) * INSTRUCTION);
-            obj_make(address, parsed_line[0], parsed_line[1], obj);
-            fprintf(f_lst, "%7d %04X %4s %7s %10s %10s ",
-            line_number, address, "  ", parsed_line[0], parsed_line[1], obj);
-            printf("%5d %04X %4s %7s %20s %30s\n",
-            line_number, address, "  ", parsed_line[0], parsed_line[1], obj);
+            obj_make(address, parsed_line[0], parsed_line[1], obj); // objcode Make
+            print_assemble(line_number, address, " ", parsed_line[0], parsed_line[1], obj);
             address_increase(&address, parsed_line[0], parsed_line[1]);
         }
         else if (blank == 2)  { // Symbol
-            char *obj = (char *)malloc(sizeof(char) * INSTRUCTION);
             // Push the address and Label
-
-            obj_make(address, parsed_line[1], parsed_line[2], obj);
-
-            fprintf(f_lst, "%7d %04X %4s %7s %10s %10s ",
-            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
-            printf("%5d %04X %4s %7s %10s %10s\n",
-            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
-            
+            obj_make(address, parsed_line[1], parsed_line[2], obj); // obj code make
+            print_assemble(line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
             address_increase(&address, parsed_line[1], parsed_line[2]);
-            
-            //obj_code = obj_make(address, parsed_line[1], parsed_line[2]);
-            // 형식에 맞춰서 lst 파일에 넣는다.
-            //fprintf(f_lst, "%7d %04X %4s %7s %20s %30s ",
-            //       line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj_code);
-            /* 현재 Instruction 종류에 따라 address 증가시킨다.*/
         }
         else if(blank == 0){
             address += 3;
@@ -251,7 +232,6 @@ void assemble(char * filename){
         }
     }
     fclose(fp);
-
 }
 
 void symbol(){
@@ -279,8 +259,8 @@ void symbol(){
     /* 출력은 끝에 다다를 때 까지 하면 그만 */ 
     
     for(i = 0; i < sym_index; i++){
-        printf("      ");
-        printf("%7s  ", sym_table[i].symbol);
+        printf("        "); // space 8
+        printf("%-7s  ", sym_table[i].symbol);
         printf("%04X\n", sym_table[i].addr);
     }
     return;
@@ -402,6 +382,8 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
     int k, disp, next_line;
     char n, i, x, b, p, e;
     char first[5], second[5], *operands, third[5], fourth[5];
+    next_line = PC;
+    address_increase(&next_line, operation, operand);
 
     /* Step 1: Opcode */
 
@@ -415,7 +397,7 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
 
     dex_to_bit(first, operands[0]);
     dex_to_bit(second, operands[1]);
-    strcpy(objcode, first);
+    strcpy(objcode, binary_to_dex(first));
     //printf("STEP 1: %s\n", objcode);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -511,14 +493,17 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
 
     second[2] = n;
     second[3] = i;
+    second[4] = '\0';
+
     third[0] = x;
     third[1] = b;
     third[2] = p;
     third[3] = e;
-    strcat(objcode, second);
-    strcat(objcode, third);
+    third[4] = '\0';
+    strcat(objcode, binary_to_dex(second));
+    strcat(objcode, binary_to_dex(third));
     
-    printf("STEP 2 : %s\n", objcode);
+    //printf("STEP 2 : %s\n", objcode);
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Step 3 : Displacement or Address */
@@ -526,8 +511,9 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
     if(operation[0] == '+') {// format 4
         int kk, temp = 0;
         char *format4_addr;
-        format4_addr = (char *)malloc(sizeof(char) * 5);
-        for (kk = 0; kk < 5; kk++)
+        format4_addr = (char *)malloc(sizeof(char) * 6);
+
+        for (kk = 0; kk < 6; kk++)
             format4_addr[kk] = '0';
 
         if(operand[0] == '#')  { // Immediate Addressing n=0, i=1
@@ -549,29 +535,31 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
 
         else 
             temp = symbol_find(operand);
-
+        if(p == -1)
+            temp -= next_line;
         /* Int Address Value => Char Address Value */
         if (temp >= (int)pow(16, 4.0) ){
             format4_addr[0] = temp / pow(16, 4.0);
-            temp -= format4_addr[0];
-            format4_addr[0] += '0';
+            temp -= (format4_addr[0] * pow(16,4.0));
+            format4_addr[0] = int_to_dex(format4_addr[0]);
         }
         if(temp >= (int) pow(16, 3.0)){
             format4_addr[1] = temp / pow(16, 3.0);
-            temp -= format4_addr[1];
-            format4_addr[1] += '0';
+            temp -= (format4_addr[1] * pow(16, 3));
+            format4_addr[1] = int_to_dex(format4_addr[1]);
         }
         if(temp >= (int) pow(16, 2.0)){
             format4_addr[2] = temp / pow(16, 2.0);
-            temp -= format4_addr[2];
-            format4_addr[2] += '0';
+            temp -= (format4_addr[2] * pow(16,2));
+            format4_addr[2] = int_to_dex(format4_addr[2]);
         }
         if(temp >= (int) pow(16, 1.0)){
             format4_addr[3] = temp / pow(16, 1.0);
-            temp -= format4_addr[3];
-            format4_addr[3] += '0';
+            temp -= (format4_addr[3] * pow(16,1));
+            format4_addr[3] = int_to_dex(format4_addr[3]);
         }
-        format4_addr[4] = temp + '0';
+        format4_addr[4] = int_to_dex(temp);
+        format4_addr[5] = '\0';
 
         strcat(objcode, format4_addr);
     }
@@ -605,55 +593,60 @@ void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
             break;   
         }
         char tt[2];
-        tt[0] = 'e'; tt[1] = '\0';
+        tt[0] = e; tt[1] = '\0';
         strcat(objcode, tt);
     }
-    else { // format 3 => 16bit
+    else { // format 3 => 12bit
         int temp = 0;
         char format3_addr[4];
+        for (k = 0; k < 4; k++)
+            format3_addr[k] = '0';
 
-        if(operand[0] == '#')  { //immediate addressing n=0, i=1;
-            if(operand[1] >= '0' && operand[1] <= '9'){
-                for (k = 1; operand[k] != '\0'; k++)  {
-                    temp *= 10;
+        if (operand[0] == '#')  { //immediate addressing n=0, i=1;
+            // To decimal.
+            if (operand[1] >= '0' && operand[1] <= '9')  {
+                for (k = 1; operand[k] != '\0' && operand[k] != '\n'; k++)  {
+                    temp *= 16;
                     temp += (operand[k] - '0');
                 }
             }
 
             else  {
                 char new_op[LINE];
-                for (k = 1; operand[k] != '\0'; k++){
+                for (k = 1; operand[k] != '\0' && operand[k] != '\n'; k++)  {
                     new_op[k - 1] = operand[k];
                 }
                 new_op[k] = '\0';
-                temp = symbol_find(new_op);     
+                temp = symbol_find(new_op);
             }
         }
-        else { // simple addressing n =1, i = 1
+        else  { // simple addressing n =1, i = 1
             temp = symbol_find(operand);
         }
+        if(p == '1'){
+            if(temp < next_line){
+                temp += (int)(pow(16, 3));
+            }
+            temp -= next_line;
+        }
 
+        //printf("TEMP : %d\n", temp);
         /* Int Address Value => Char Address Value */
-        if (temp >= (int)pow(16, 3.0) ){
-            format3_addr[0] = temp / pow(16, 3.0);
-            temp -= format3_addr[0];
-            format3_addr[0] += '0';
+        if (temp >= (int)pow(16, 2.0) )  {
+            format3_addr[0] = temp / pow(16, 2.0);
+            temp -= (format3_addr[0] * pow(16,2));
+            format3_addr[0] = int_to_dex(format3_addr[0]);
         }
-        if(temp >= (int) pow(16, 2.0)){
-            format3_addr[1] = temp / pow(16, 2.0);
-            temp -= format3_addr[1];
-            format3_addr[1] += '0';
+        if(temp >= (int) pow(16, 1.0))  {
+            format3_addr[1] = temp / pow(16, 1.0);
+            temp -= (format3_addr[1] * pow(16,1));
+            format3_addr[1] = int_to_dex(format3_addr[1]);
         }
-        if(temp >= (int) pow(16, 1.0)){
-            format3_addr[2] = temp / pow(16, 1.0);
-            temp -= format3_addr[2];
-            format3_addr[2] += '0';
-        }
-        format3_addr[3] = temp + '0';
+        format3_addr[2] = int_to_dex(temp);
+        format3_addr[3] = '\0';
+
         strcat(objcode, format3_addr);
     }
-
-    printf("%s\n", objcode);
     return objcode;
 }
 
@@ -779,4 +772,80 @@ int stoi(char * target){
     }
 
     return temp;
+}
+
+/* binary -> Dex change! */
+char* binary_to_dex(char * binary){
+    int i, digit, temp = 0;
+    char *result;
+
+    if (strlen(binary) == 5){
+        digit = 16;
+        result = (char *)malloc(sizeof(char) * 3);
+    }
+    else if(strlen(binary) == 4){
+        digit = 8;
+        result = (char *)malloc(sizeof(char) * 2);
+    }
+    else {
+        printf("strlen : %d\n", (int)strlen(binary));
+        printf("s : %s\n", binary);
+        return "ERROR AT BINARY_TO_DEX";
+    }
+
+    for (i = 0; i < (int)strlen(binary); i++, digit /= 2){
+        if(binary[i] == '1') {
+            temp += digit;
+        }
+    }
+
+    if( temp >= 16){
+        result[0] = temp / 16;
+        temp -= (result[0] * (temp / 16));
+        result[1] = temp;
+
+        if(result[0] >= 10){
+            result[0] -= 10;
+            result[0] += 'A';
+        }
+        else {
+            result[0] += '0';
+        }
+        if(result[1] >= 10){
+            result[1] -= 10;
+            result[1] += 'A';
+        }
+        else{
+            result[1] += '0';
+        }
+
+        result[2] = '\0';
+    }
+
+    else{
+        if(temp >= 10){
+            result[0] = temp - 10 + 'A';
+        }
+        else
+            result[0] = temp + '0';
+        result[1] = '\0';
+    }
+    return result;
+}
+
+
+char int_to_dex(int target){
+    if(target < 10){
+        target += '0';
+    }
+    else {
+        target -= 10;
+        target += 'A';
+    }
+    return target;
+}
+
+void print_assemble(int addr, int location, char *symbol, char *operation, char *operand, char *objcode){
+    printf("%-5d %04X     %-6s   %-7s  %-10s  %-10s\n",
+            addr, location, symbol, operation, operand, objcode);
 }

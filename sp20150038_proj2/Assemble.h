@@ -30,8 +30,12 @@ void symbol();
 void push_symbol(int addr, char [LINE]);
 void assemble_init();
 void address_increase(int * addr, char [LINE], char[LINE]);
+void print_assemble(int addr, int location, char *symbol, char *operation, char *operand, char *objcode);
 void obj_make(int, char[LINE], char[LINE], char *);
 void dex_to_bit(char *, char);
+
+char int_to_dex(int);
+char *binary_to_dex(char *);
 
 int stoi(char *);
 int symbol_find(char[LINE]);

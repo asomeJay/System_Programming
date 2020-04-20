@@ -15,26 +15,25 @@ void assemble_init(){
     }
 
     opcode[0].symbol = "STL"; opcode[0].op = "14";
-    opcode[1].symbol = "LDB"; opcode[0].op = "68";
-    opcode[2].symbol = "+JUSB"; opcode[0].op = "48";
-    opcode[3].symbol = "LDA"; opcode[0].op = "00";
-    opcode[4].symbol = "COMP"; opcode[0].op = "28";
-    opcode[5].symbol = "JEQ"; opcode[0].op = "30";
-    opcode[6].symbol = "J"; opcode[0].op = "3C";
-    opcode[7].symbol = "STA"; opcode[0].op = "0C";
-    opcode[8].symbol = "CLEAR"; opcode[0].op = "B4";
-    opcode[9].symbol = "+LDT"; opcode[0].op = "74";
-    opcode[10].symbol = "TD"; opcode[0].op = "E0";
-    opcode[11].symbol = "RD"; opcode[0].op = "D8";
-    opcode[12].symbol = "COMPR"; opcode[0].op = "A0";
-    opcode[13].symbol = "STCH"; opcode[0].op = "54";
-    opcode[14].symbol = "TIXR"; opcode[0].op = "B8";
-    opcode[15].symbol = "JLT"; opcode[0].op = "38";
-    opcode[16].symbol = "STX"; opcode[0].op = "10";
-    opcode[17].symbol = "RSUB"; opcode[0].op = "4C";
-    opcode[18].symbol = "LDCH"; opcode[0].op = "50";
-    opcode[19].symbol = "WD"; opcode[0].op = "DC";
-    opcode[20].symbol = "JLT"; opcode[0].op = "38";
+    opcode[1].symbol = "LDB"; opcode[1].op = "68";
+    opcode[2].symbol = "+JUSB"; opcode[2].op = "48";
+    opcode[3].symbol = "LDA"; opcode[3].op = "00";
+    opcode[4].symbol = "COMP"; opcode[4].op = "28";
+    opcode[5].symbol = "JEQ"; opcode[5].op = "30";
+    opcode[6].symbol = "J"; opcode[6].op = "3C";
+    opcode[7].symbol = "STA"; opcode[7].op = "0C";
+    opcode[8].symbol = "CLEAR"; opcode[8].op = "B4";
+    opcode[9].symbol = "+LDT"; opcode[9].op = "74";
+    opcode[10].symbol = "TD"; opcode[10].op = "E0";
+    opcode[11].symbol = "RD"; opcode[11].op = "D8";
+    opcode[12].symbol = "COMPR"; opcode[12].op = "A0";
+    opcode[13].symbol = "STCH"; opcode[13].op = "54";
+    opcode[14].symbol = "TIXR"; opcode[14].op = "B8";
+    opcode[15].symbol = "JLT"; opcode[15].op = "38";
+    opcode[16].symbol = "STX"; opcode[16].op = "10";
+    opcode[17].symbol = "RSUB"; opcode[17].op = "4C";
+    opcode[18].symbol = "LDCH"; opcode[18].op = "50";
+    opcode[19].symbol = "WD"; opcode[19].op = "DC";
 }
 
 void type(char * filename){
@@ -110,27 +109,24 @@ void assemble(char * filename){
         }
         // 소스 파일에서 한 줄 읽었으면 명령어로 바꿔줘야한다.
 
-        blank = parse_line(parsed_line, src_line);
-        // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
-        if (strstr(parsed_line[0], ".")){
-            fprintf(f_lst, "%7d                %s\n",
-            line_number, src_line);
+        if (strstr(src_line, ".")){
             continue;
         }
-        printf("blank : %d\n", blank);
+        blank = parse_line(parsed_line, src_line);
+        // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
+
         // START No Symbol
         if (!strcmp(parsed_line[1], "START"))
         {
             int temp = 0;
             int i;
-            for (i = 0; parsed_line[2][i] != '\0'; i++)
-            {
-                temp *= 16;
-                temp += (parsed_line[2][i] - '0');
-            }
 
+            for (i = 0; parsed_line[2][i] != '\0' && parsed_line[2][i] != '\n'; i++)  {
+                temp *= 16;
+                temp += (parsed_line[2][i] - '0');                
+            }
             address = temp;
-            printf("START POS : %X \n", address);
+            printf("START POS : %d \n", address);
             continue;
         }
 
@@ -139,7 +135,6 @@ void assemble(char * filename){
         if(!strcmp(parsed_line[0], "BASE")){
             continue;
         }
-        printf("blank : %d\n", blank);
         if (blank == 1)  { // No Symbol
             address_increase(&address, parsed_line[0], parsed_line[1]);
         }
@@ -154,6 +149,9 @@ void assemble(char * filename){
             //       line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj_code);
             /* 현재 Instruction 종류에 따라 address 증가시킨다.*/
         }
+        else if(blank==0){
+            address += 3;
+        }
         else  {
             printf("Assemble Parsing ERROR : %s\n", parsed_line[0]);
             return;
@@ -161,10 +159,12 @@ void assemble(char * filename){
 
     }
     fclose(fp);
+    printf("PASS 1 END\n");
+    /////////////////////////////////////////////////////////////////////
 
     /* 
-    PASS2 : Obj 코드를 만든다. 
-
+    PASS2 : Although sleep come... but We must make OBJCODE!!!!! 
+    WE finally enter the final line...!
     */
 
     fp = fopen(filename, "r");
@@ -177,7 +177,7 @@ void assemble(char * filename){
     address = 0;
     line_number = 0; 
 
-    while(1){
+    while(1)  {
         char src_line[LINE], parsed_line[3][LINE];
         int blank;
         line_number += 5;
@@ -187,35 +187,53 @@ void assemble(char * filename){
             break;
         }
         // 소스 파일에서 한 줄 읽었으면 명령어로 바꿔줘야한다.
-        
-        blank = parse_line(parsed_line, src_line);
-        // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
-        if (parsed_line[0] == "."){
+        if (strstr(src_line, "."))  {
             fprintf(f_lst, "%7d                %s\n",
             line_number, src_line);
             continue;
         }
+
+        blank = parse_line(parsed_line, src_line);
+        // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
+        
         // START - Obj X
         if (!strcmp(parsed_line[0], "COPY"))  {
-            fprintf(f_lst, "%7d %04X %4s %7s %20s %30s ",
-            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2]," ");
+            fprintf(f_obj, "H%s  00000000000001077", parsed_line[0]);
+            printf("%5d %04X %4s %7s %10s\n",
+            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2]);
             continue;
         }
 
         // BASE - Obj X
         if(!strcmp(parsed_line[0], "BASE"))  {
-            fprintf(f_lst, "%7d %04X %4s %7s %20s %30s ",
+            fprintf(f_lst, "%5d %04X %4s %7s %10s %10s ",
+            line_number, address, " ", parsed_line[0], parsed_line[1], " ");
+            printf("%5d %04X %4s %7s %10s %10s\n",
             line_number, address, " ", parsed_line[0], parsed_line[1], " ");
             continue;
         }
-
         printf("blank : %d\n", blank);
+
         if (blank == 1)  { // No Symbol
+            char *obj = (char * ) malloc(sizeof(char) * INSTRUCTION);
+            obj_make(address, parsed_line[0], parsed_line[1], obj);
+            fprintf(f_lst, "%7d %04X %4s %7s %10s %10s ",
+            line_number, address, "  ", parsed_line[0], parsed_line[1], obj);
+            printf("%5d %04X %4s %7s %20s %30s\n",
+            line_number, address, "  ", parsed_line[0], parsed_line[1], obj);
             address_increase(&address, parsed_line[0], parsed_line[1]);
-            
         }
         else if (blank == 2)  { // Symbol
+            char *obj = (char *)malloc(sizeof(char) * INSTRUCTION);
             // Push the address and Label
+
+            obj_make(address, parsed_line[1], parsed_line[2], obj);
+
+            fprintf(f_lst, "%7d %04X %4s %7s %10s %10s ",
+            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
+            printf("%5d %04X %4s %7s %10s %10s\n",
+            line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
+            
             address_increase(&address, parsed_line[1], parsed_line[2]);
             
             //obj_code = obj_make(address, parsed_line[1], parsed_line[2]);
@@ -224,13 +242,15 @@ void assemble(char * filename){
             //       line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj_code);
             /* 현재 Instruction 종류에 따라 address 증가시킨다.*/
         }
+        else if(blank == 0){
+            address += 3;
+        }
         else  {
             printf("Assemble Parsing ERROR\n");
             return;
         }
-
-        fclose(fp);
     }
+    fclose(fp);
 
 }
 
@@ -261,7 +281,7 @@ void symbol(){
     for(i = 0; i < sym_index; i++){
         printf("      ");
         printf("%7s  ", sym_table[i].symbol);
-        printf("%04d\n", sym_table[i].addr);
+        printf("%04X\n", sym_table[i].addr);
     }
     return;
 }
@@ -274,7 +294,7 @@ int parse_line(char parse[3][LINE], char origin[LINE]){
         continue;
     }
 
-    for(; origin[i] != '\0';){ // To the end of String, save the each word.
+    while ((origin[i] != '\0') && (origin[i] != '\n')) { // To the end of String, save the each word.
         if(origin[i] != ' '){
             parse[j][k] = origin[i];
             k++;
@@ -285,10 +305,11 @@ int parse_line(char parse[3][LINE], char origin[LINE]){
             blank++;
             j++; 
             k = 0;
-            while(origin[i] == ' ' && origin[i] != '\0')
+            while(origin[i] == ' ')
                 i++;
         }
     }
+    parse[j][k] = '\0';
     return blank;
 }
 
@@ -314,7 +335,7 @@ void address_increase(int *addr, char inst[LINE], char operand[LINE]){
         // 4형식
         (*addr) += 4;   
     }
-    else if(strcmp(inst, "BYTE") == 0){
+    else if(!strcmp(inst, "BYTE")){
         int i = 0, count = 0;
         char mode = operand[0];
 
@@ -342,6 +363,9 @@ void address_increase(int *addr, char inst[LINE], char operand[LINE]){
     }
     else if(!strcmp(inst, "CLEAR") || !strcmp(inst, "TIXR")){
         (*addr) += 2;
+    }
+    else {
+        (*addr) += 3;
     }
 }
 
@@ -373,32 +397,32 @@ step 3 : Displacement or address
 etc : format 2-> opcode + RegNumber + 0
 
 */
-char * obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
+void obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode){
 // PC already increased(latest)
     int k, disp, next_line;
     char n, i, x, b, p, e;
-    char *first, *second, *operands, third[4], fourth[4];
+    char first[5], second[5], *operands, third[5], fourth[5];
 
     /* Step 1: Opcode */
 
     // Geting a Opcode... 
-    for (k = 0; k < 21; k++)  {
+    for (k = 0; k < 20; k++)  {
         if(!strcmp(opcode[k].symbol, operation)){
             operands = opcode[k].op;
             break;
         }
     }
 
-    first = dex_to_bit(operands[0]);
-    second = dex_to_bit(operands[1]);
+    dex_to_bit(first, operands[0]);
+    dex_to_bit(second, operands[1]);
     strcpy(objcode, first);
-
+    //printf("STEP 1: %s\n", objcode);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Step 2: nixbpe */
     // Find Symbol... If result is -1, there isn't.
-    disp = symbol_find(operand);
-    if(operation[0] == '+')  { // format 4 : address : 20bit
+    
+    if (operation[0] == '+')  { // format 4 : address : 20bit
         if(operand[0] == '#')  {
             n = '0';
             i = '1';
@@ -474,7 +498,7 @@ char * obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode
             p = '1';
             e = '0';
 
-            if (strstr(operand, "BUFFER") != NULL)  { // Buffer Access
+            if (strstr(operand, "BUFFER"))  { // Buffer Access
                 x = '1';
                 int distance = symbol_find("BUFFER");
                 if (PC - distance >= 4096){
@@ -491,9 +515,10 @@ char * obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode
     third[1] = b;
     third[2] = p;
     third[3] = e;
-
     strcat(objcode, second);
     strcat(objcode, third);
+    
+    printf("STEP 2 : %s\n", objcode);
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Step 3 : Displacement or Address */
@@ -642,42 +667,107 @@ int symbol_find(char operation[LINE]){
     return -1;
 }
 
-char * dex_to_bit(char fbit){
+void dex_to_bit(char * dest, char fbit){
     switch(fbit){
     case '0':
-        return "0000";
+        dest[0] = '0';
+        dest[1] = '0';
+        dest[2] = '0';
+        dest[3] = '0';
+        break;
     case '1':
-        return "0001";
+        dest[0] = '0';
+        dest[1] = '0';
+        dest[2] = '0';
+        dest[3] = '1';
+        break;
     case '2':
-        return "0010";
+        dest[0] = '0';
+        dest[1] = '0';
+        dest[2] = '1';
+        dest[3] = '0';
+        break;
     case '3':
-        return "0011";
+        dest[0] = '0';
+        dest[1] = '0';
+        dest[2] = '1';
+        dest[3] = '1';
+        break;
     case '4':
-        return "0100";
+        dest[0] = '0';
+        dest[1] = '1';
+        dest[2] = '0';
+        dest[3] = '0';
+        break;
     case '5':
-        return "0101";
+        dest[0] = '0';
+        dest[1] = '1';
+        dest[2] = '0';
+        dest[3] = '1';
+        break;
     case '6':
-        return "0110";
+        dest[0] = '0';
+        dest[1] = '1';
+        dest[2] = '1';
+        dest[3] = '0';
+        break;
     case '7':
-        return "0111";
+        dest[0] = '0';
+        dest[1] = '1';
+        dest[2] = '1';
+        dest[3] = '1';
+        break;
     case '8':
-        return "1000";
+        dest[0] = '1';
+        dest[1] = '0';
+        dest[2] = '0';
+        dest[3] = '0';
+        break;
     case '9':
-        return "1001";
+        dest[0] = '1';
+        dest[1] = '0';
+        dest[2] = '0';
+        dest[3] = '1';
+        break;
     case 'A':
-        return "1010";
+        dest[0] = '1';
+        dest[1] = '0';
+        dest[2] = '1';
+        dest[3] = '0';
+        break;
     case 'B':
-        return "1011";
+        dest[0] = '1';
+        dest[1] = '0';
+        dest[2] = '1';
+        dest[3] = '1';
+        break;
     case 'C':
-        return "1100";
+        dest[0] = '1';
+        dest[1] = '1';
+        dest[2] = '0';
+        dest[3] = '0';
+        break;
     case 'D':
-        return "1101";
+        dest[0] = '1';
+        dest[1] = '1';
+        dest[2] = '0';
+        dest[3] = '1';
+        break;
     case 'E':
-        return "1110";
+        dest[0] = '1';
+        dest[1] = '1';
+        dest[2] = '1';
+        dest[3] = '0';
+        break;
     case 'F':
-        return "1111";
+        dest[0] = '1';
+        dest[1] = '1';
+        dest[2] = '1';
+        dest[3] = '1';
+        break;
     }
-    return "0";
+    dest[4] = '\0';
+    return;
 }
 
 int stoi(char * target){

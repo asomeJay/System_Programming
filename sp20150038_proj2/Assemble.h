@@ -5,6 +5,7 @@
 #define INSTRUCTION 60
 #define LINE 60
 #define OBJCODE 60
+#define MAX_CHAR 255
 
 typedef struct sym_element{
     char * symbol ;
@@ -33,13 +34,16 @@ void address_increase(int * addr, char [LINE], char[LINE]);
 void print_assemble(int addr, int location, char *symbol, char *operation, char *operand, char *objcode);
 void obj_make(int, char[LINE], char[LINE], char *);
 void dex_to_bit(char *, char);
+void char_to_dex(int , char *, int *);
+void parse_line(char[3][LINE], char[LINE]);
 
+char register_to_num(char);
 char int_to_dex(int);
 char *binary_to_dex(char *);
 
 int stoi(char *);
 int symbol_find(char[LINE]);
-int parse_line(char[3][LINE], char[LINE]);
+
 
 
 #endif

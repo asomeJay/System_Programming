@@ -37,6 +37,7 @@ void assemble_init()  {
     opcode[19].symbol = "WD"; opcode[19].op = "DC";
 }
 
+/*매개변수로 들어온 파일을 열어서 그 내용을 출력합니다. */
 void type(char * filename){
     FILE * fp = fopen(filename, "r");
     if(fp == NULL){
@@ -169,7 +170,6 @@ void assemble(char * filename){
                 address_increase(&address, parsed_line[1], parsed_line[2]);
             }
         }
-        
     }
     fclose(fp);
     /////////////////////////////////////////////////////////////////////////////////
@@ -885,6 +885,7 @@ int obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode, i
     return 1;
 }
 
+/* Symbol table에서 symbol을 찾아서 그 address를 return 한다 */
 int symbol_find(char operation[LINE]){
     int i;
     for (i = 0; i < sym_index; i++){
@@ -998,6 +999,7 @@ void dex_to_bit(char * dest, char fbit){
     return;
 }
 
+/*우리가 아는 그 stoi 맞습니다... C는 왜 지원하지 않느냐!*/
 int stoi(char * target){
     int i, temp = 0, size = strlen(target);
 
@@ -1068,7 +1070,7 @@ char* binary_to_dex(char * binary){
     return result;
 }
 
-
+/* 10진수 정수를 16진수로 변환한다. */
 char int_to_dex(int target){
     if(target < 10){
         target += '0';
@@ -1085,6 +1087,7 @@ void print_assemble(FILE * fp, int addr, int location, char *symbol, char *opera
             addr, location, symbol, operation, operand, objcode);
 }
 
+/* 이름은 마치 character 값을 변환하는 것 같지만, 실제로는 입력된 t를 두 자리 16진수 비트로 바꿈 */
 void char_to_dex(int t, char *temp, int *index){
     temp[(*index)++] = (int)t / 16;
     if(temp[(*index)-1] >= 10){
@@ -1205,45 +1208,6 @@ void formatting(char * format, int digit, int target) {
         format[i++] = int_to_dex(target);
         format[i] = '\0';
 }
-
-/*if (temp >= (int)pow(16, 4.0))
-        {
-            format4_addr[0] = temp / pow(16, 4.0);
-            temp -= (format4_addr[0] * pow(16,4.0));
-            format4_addr[0] = int_to_dex(format4_addr[0]);
-        }
-        if(temp >= (int) pow(16, 3.0)){
-            format4_addr[1] = temp / pow(16, 3.0);
-            temp -= (format4_addr[1] * pow(16, 3));
-            format4_addr[1] = int_to_dex(format4_addr[1]);
-        }
-        if(temp >= (int) pow(16, 2.0)){
-            format4_addr[2] = temp / pow(16, 2.0);
-            temp -= (format4_addr[2] * pow(16,2));
-            format4_addr[2] = int_to_dex(format4_addr[2]);
-        }
-        if(temp >= (int) pow(16, 1.0)){
-            format4_addr[3] = temp / pow(16, 1.0);
-            temp -= (format4_addr[3] * pow(16,1));
-            format4_addr[3] = int_to_dex(format4_addr[3]);
-        }
-        format4_addr[4] = int_to_dex(temp);
-        format4_addr[5] = '\0';
-        
-        if (temp >= (int)pow(16, 2.0))
-        {
-            format3_addr[0] = temp / pow(16, 2.0);
-            temp -= (format3_addr[0] * pow(16,2));
-            format3_addr[0] = int_to_dex(format3_addr[0]);
-        }
-        if(temp >= (int) pow(16, 1.0))  {
-            format3_addr[1] = temp / pow(16, 1.0);
-            temp -= (format3_addr[1] * pow(16,1));
-            format3_addr[1] = int_to_dex(format3_addr[1]);
-        }
-        format3_addr[2] = int_to_dex(temp);
-        format3_addr[3] = '\0';*/
-
 
 void format4_plus_delete(char *dest, char *src){
     int i;

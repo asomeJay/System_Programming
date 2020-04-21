@@ -8,3 +8,4 @@
 
 <h5>2020.04.15 Project 2 Start ( ~ 4.21) </h5>
 <h5>2020.04.20 PASS 2를 거의 완료했다. </h5>
+<h5>2020.04.21 Project 2 Complete </h5>

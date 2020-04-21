@@ -9,13 +9,31 @@ int sym_index, last_address ;
 int base;
 
 void assemble_init()  {
-    int i;
+    int i, k;
     for (i = 0; i < 200; i++)  {
         sym_table[i].symbol = (char *)malloc(sizeof(char) * SYMBOL);
         sym_table[i].addr = 0;
+        opcode[i].op = (char *)malloc(sizeof(char) * SYMBOL);
+        opcode[i].symbol = (char *)malloc(sizeof(char) * SYMBOL);
     }
 
-    opcode[0].symbol = "STL"; opcode[0].op = "14";
+    FILE *fps = fopen("opcode.txt", "r");
+    if(fps == NULL){
+        printf("ERROR ASSEMBLE INIT\n");
+        return;
+    }
+    char opc[255];
+    k = 0;
+    
+    while ( !feof(fps) )  {
+        fscanf(fps, "%s %s %s\n", opcode[k].op, opcode[k].symbol, opc);
+        printf("%s : %s\n", opcode[k].symbol, opcode[k].op);
+        k++;
+    }
+    fclose(fps);
+
+    /*    opcode[0].symbol = "STL";
+    opcode[0].op = "14";
     opcode[1].symbol = "LDB"; opcode[1].op = "68";
     opcode[2].symbol = "JSUB"; opcode[2].op = "48";
     opcode[3].symbol = "LDA"; opcode[3].op = "00";
@@ -34,7 +52,7 @@ void assemble_init()  {
     opcode[16].symbol = "STX"; opcode[16].op = "10";
     opcode[17].symbol = "RSUB"; opcode[17].op = "4C";
     opcode[18].symbol = "LDCH"; opcode[18].op = "50";
-    opcode[19].symbol = "WD"; opcode[19].op = "DC";
+    opcode[19].symbol = "WD"; opcode[19].op = "DC";*/
 }
 
 /*매개변수로 들어온 파일을 열어서 그 내용을 출력합니다. */
@@ -53,6 +71,7 @@ void type(char * filename){
     return;
 }
 
+/* 입력된 filename을 assemble 한다. */
 void assemble(char * filename){
     int address, line_number, i;
     char list_filename[255], obj_filename[255];
@@ -64,6 +83,29 @@ void assemble(char * filename){
         return;
     }
 
+    for (i = 0; filename[i] != '.'; i++){
+        list_filename[i] = filename[i];
+        obj_filename[i] = filename[i];
+    }
+    list_filename[i] = '\0';
+    obj_filename[i] = '\0';
+
+    strcat(list_filename, ".lst");
+    strcat(obj_filename, ".obj");
+
+    // 파일을 쭈우우욱 읽어들인다. 한 줄씩 읽을 건데 넉넉하게 60개 잡아놓자
+    /* 파일이 끝날 때 까지 읽어들여서 .lst 파일과 .obj 파일을 만든다. */
+    FILE *f_lst = fopen((const char *)list_filename, "w+");
+    FILE *f_obj = fopen((const char *)obj_filename, "w+");
+    
+    if (f_lst == NULL || f_obj == NULL)  {
+        fclose(f_lst);
+        fclose(f_obj);
+        remove(list_filename);
+        remove(obj_filename);
+        printf("ERROR LST OR OBJ FILE\n");
+        return;
+    }
     /* PASS 1 : 한 줄씩 읽으면서 각 Symbol의 Location Counter를 만든다.
     => Symbol Table을 만든다. 
     Format 1:  ...  - few used
@@ -107,6 +149,10 @@ void assemble(char * filename){
                 if(instruction_check(for_check) == -1)  {
                     printf("%s\n", for_check);
                     printf("ERROR : %d : %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
                 continue;
@@ -121,6 +167,10 @@ void assemble(char * filename){
 
             if(instruction_check(parsed_line[1]) == -1)  {
                 printf("ERROR : %d : %s\n", line_number, src_line);
+                fclose(f_lst);
+                fclose(f_obj);
+                remove(list_filename);
+                remove(obj_filename);
             return;
             }
         }
@@ -135,18 +185,30 @@ void assemble(char * filename){
                 for_check[i - 1] = '\0';
                 if(instruction_check(for_check) == -1)  {
                     printf("ERROR : %d : %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
             }
             else {
                 if(instruction_check(parsed_line[1]) == -1){
                     printf("ERROR : %d : %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
             }
 
             if(instruction_check(parsed_line[1]) == -1){
                 printf("ERROR : %d : %s\n", line_number, src_line);
+                fclose(f_lst);
+                fclose(f_obj);
+                remove(list_filename);
+                remove(obj_filename);
                 return;
             }
             if (!strcmp(parsed_line[1], "START"))  {
@@ -186,26 +248,7 @@ void assemble(char * filename){
         return;
     }
 
-    for (i = 0; filename[i] != '.'; i++){
-        list_filename[i] = filename[i];
-        obj_filename[i] = filename[i];
-    }
-    list_filename[i] = '\0';
-    obj_filename[i] = '\0';
-
-    strcat(list_filename, ".lst");
-    strcat(obj_filename, ".obj");
-
-    // 파일을 쭈우우욱 읽어들인다. 한 줄씩 읽을 건데 넉넉하게 60개 잡아놓자
-    /* 파일이 끝날 때 까지 읽어들여서 .lst 파일과 .obj 파일을 만든다. */
-    FILE *f_lst = fopen((const char *)list_filename, "w+");
-    FILE *f_obj = fopen((const char *)obj_filename, "w+");
     
-    if (f_lst == NULL || f_obj == NULL)
-    {
-        printf("ERROR LST OR OBJ FILE\n");
-        return;
-    }
     // .asm 파일을 한 줄 씩 읽어들인다.
     last_address = address; 
     address = 0;
@@ -242,6 +285,10 @@ void assemble(char * filename){
 
                 if(obj_make(address, t_inst, parsed_line[2], obj, 4) == -1){
                     printf("ERROR %d %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 };
                 if(!(parsed_line[2][0] == '#' && (parsed_line[2][1] >= '0' && parsed_line[2][1] <= '9'))){
@@ -257,6 +304,10 @@ void assemble(char * filename){
                 base = symbol_find(parsed_line[2]);
                 if(base == -1){
                     printf("%s ERROR\n", src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
                 fprintf(f_lst, "%-5d %4s     %-6s   %-7s  %-10s  %-10s\n",
@@ -273,6 +324,10 @@ void assemble(char * filename){
             else {
                 if(obj_make(address, parsed_line[1], parsed_line[2], obj, 3) == -1){
                     printf("ERROR %d %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
                 print_assemble(f_lst, line_number, address, " ", parsed_line[1], parsed_line[2], obj);
@@ -294,6 +349,10 @@ void assemble(char * filename){
 
                 if (obj_make(address, t_inst, parsed_line[2], obj, 4) == -1)  {
                     printf("ERROR %d %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 }
                 if(!(parsed_line[2][0] == '#' && (parsed_line[2][1] >= '0' && parsed_line[2][1] <= '9'))){
@@ -315,6 +374,10 @@ void assemble(char * filename){
                 }
                 if(obj_make(address, parsed_line[1], parsed_line[2], obj, 3) == -1){
                     printf("ERROR %d %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
                     return;
                 } // obj code make
                 print_assemble(f_lst, line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
@@ -522,6 +585,8 @@ step 3 : Displacement or address
 etc : format 2-> opcode + RegNumber + 0
 
 */
+
+/*object code를 만드는 함수입니다. */ 
 int obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode, int format){
 // PC already increased(latest)
     int k, next_line;
@@ -531,12 +596,12 @@ int obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode, i
 
     /* Handle Constant */
     if(!strcmp(operation, "RESW") || !strcmp(operation, "RESB")){
-        strcpy(objcode, "");
+        strcpy(objcode, ""); // 얘들은 objcode가 없습니다. 
         return 1;
     }
 
     if (!strcmp(operation, "BYTE"))
-    { // 상수
+    { // 상수는 특별하게 처리해주겠어 
         char new_op[MAX_CHAR], resulted[MAX_CHAR];
         int index = 0;
 
@@ -658,6 +723,7 @@ int obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode, i
         if(strstr(operand, "BUFFER")){
             int distance = symbol_find("BUFFER");
             if(distance == -1){
+
                 return -1;
             }
 
@@ -896,6 +962,7 @@ int symbol_find(char operation[LINE]){
     return -1;
 }
 
+/* 매개변수로 들어온 fbit는 16진수 형식입니다. 이걸 4bit binary digit으로 변환합니다. */
 void dex_to_bit(char * dest, char fbit){
     switch(fbit){
     case '0':
@@ -999,7 +1066,8 @@ void dex_to_bit(char * dest, char fbit){
     return;
 }
 
-/*우리가 아는 그 stoi 맞습니다... C는 왜 지원하지 않느냐!*/
+/*우리가 아는 그 stoi 맞습니다... C는 왜 지원하지 않느냐! 
+지원하지 않길래 제가 만들었습니다. string으로 된 정수를 integer로 바꿉니다. */
 int stoi(char * target){
     int i, temp = 0, size = strlen(target);
 

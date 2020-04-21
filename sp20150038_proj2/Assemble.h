@@ -1,7 +1,7 @@
 #ifndef __Assemble_H__
 #define __Assemble_H__
 
-#define SYMBOL 7
+#define SYMBOL 10
 #define INSTRUCTION 60
 #define LINE 60
 #define OBJCODE 60

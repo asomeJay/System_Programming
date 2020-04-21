@@ -5,7 +5,7 @@
 
 #include "Assemble.h"
 
-int sym_index, last_address ;
+int sym_index, last_address, op_index ;
 int base;
 
 void assemble_init()  {
@@ -27,9 +27,9 @@ void assemble_init()  {
     
     while ( !feof(fps) )  {
         fscanf(fps, "%s %s %s\n", opcode[k].op, opcode[k].symbol, opc);
-        printf("%s : %s\n", opcode[k].symbol, opcode[k].op);
         k++;
     }
+    op_index = k;
     fclose(fps);
 
     /*    opcode[0].symbol = "STL";
@@ -134,19 +134,17 @@ void assemble(char * filename){
         
         parse_line(parsed_line, src_line);  // |ㅁ|ㅁ|ㅁ| OR |ㅁ|ㅁ| |
 
-        //printf("%s %s %s\n", parsed_line[0], parsed_line[1], parsed_line[2]);
-        if (parsed_line[0][0] == 'N')
-        {                                   // No Symbol => No need to into
-            
+        if (parsed_line[0][0] == 'N')  {   // No Symbol => No need to into
             if (parsed_line[1][0] == '+') {// format4
             /* Format 4는 좀 특이하게 생겼으므로 특이 취급을 해준다. */
                 address += 4;
+
                 char for_check[10];
-                for (i = 1; parsed_line[1][i] != '\0'; i++)  {
-                    for_check[i - 1] = parsed_line[1][i];
-                }
-                for_check[i - 1] = '\0';
-                if(instruction_check(for_check) == -1)  {
+                format4_plus_delete(for_check, parsed_line[1]);
+
+                if (instruction_check(for_check) == -1)  {
+                    // 에러가 터지면 어디서 에러가 났는지 보고하고
+                    // lst 파일과 obj 파일을 닫고, 이미 만든 건 삭제한다. 
                     printf("%s\n", for_check);
                     printf("ERROR : %d : %s\n", line_number, src_line);
                     fclose(f_lst);
@@ -155,23 +153,24 @@ void assemble(char * filename){
                     remove(obj_filename);
                     return;
                 }
+
                 continue;
             }
-            else if (!strcmp(parsed_line[1], "BASE"))
+            else {  // '+' 가 아니다!
+                if(instruction_check(parsed_line[1]) == -1)  {
+                    printf("ERROR : %d : %s\n", line_number, src_line);
+                    fclose(f_lst);
+                    fclose(f_obj);
+                    remove(list_filename);
+                    remove(obj_filename);
+                    return;
+                }
+                if (!strcmp(parsed_line[1], "BASE"))
                 continue;
             else if (!strcmp(parsed_line[1], "END"))
                 break;
-            
-            else 
+            else
                 address_increase(&address, parsed_line[1], parsed_line[2]);
-
-            if(instruction_check(parsed_line[1]) == -1)  {
-                printf("ERROR : %d : %s\n", line_number, src_line);
-                fclose(f_lst);
-                fclose(f_obj);
-                remove(list_filename);
-                remove(obj_filename);
-            return;
             }
         }
         else  { // Yes Symbol => need to Symbolize. 
@@ -179,11 +178,9 @@ void assemble(char * filename){
             /* Format 4는 좀 특이하게 생겼으므로 특이 취급을 해준다. */
 
                 char for_check[10];
-                for (i = 1; parsed_line[1][i] != '\0'; i++)  {
-                    for_check[i - 1] = parsed_line[1][i];
-                }
-                for_check[i - 1] = '\0';
-                if(instruction_check(for_check) == -1)  {
+                format4_plus_delete(for_check, parsed_line[1]);
+
+                if (instruction_check(for_check) == -1)  {
                     printf("ERROR : %d : %s\n", line_number, src_line);
                     fclose(f_lst);
                     fclose(f_obj);
@@ -201,15 +198,6 @@ void assemble(char * filename){
                     remove(obj_filename);
                     return;
                 }
-            }
-
-            if(instruction_check(parsed_line[1]) == -1){
-                printf("ERROR : %d : %s\n", line_number, src_line);
-                fclose(f_lst);
-                fclose(f_obj);
-                remove(list_filename);
-                remove(obj_filename);
-                return;
             }
             if (!strcmp(parsed_line[1], "START"))  {
                 int i, temp = 0;
@@ -234,6 +222,7 @@ void assemble(char * filename){
         }
     }
     fclose(fp);
+
     /////////////////////////////////////////////////////////////////////////////////
 
     /* 
@@ -248,7 +237,6 @@ void assemble(char * filename){
         return;
     }
 
-    
     // .asm 파일을 한 줄 씩 읽어들인다.
     last_address = address; 
     address = 0;
@@ -265,10 +253,10 @@ void assemble(char * filename){
 
         line_number += 5;
 
-        if (fgets(src_line, LINE, fp) == NULL)  {
+        if (fgets(src_line, LINE, fp) == NULL)  
             // NULL 인 경우 왠만하면 파일 끝에 다다랐다는 것이므로 while 문을 종료한다.
             break;
-        }
+        
         // 소스 파일에서 한 줄 읽었으면 명령어로 바꿔줘야한다.
         if (strstr(src_line, "."))  {
             fprintf(f_lst, "%-4d     %s", line_number, src_line);
@@ -635,7 +623,7 @@ int obj_make(int PC, char operation[LINE], char operand[LINE], char * objcode, i
     /* Step 1: Opcode */
 
     // Geting a Opcode... 
-    for (k = 0; k < 20; k++)  {
+    for (k = 0; k < op_index; k++)  {
         if(!strcmp(opcode[k].symbol, operation)){
             operands = opcode[k].op;
             break;
@@ -1208,24 +1196,15 @@ char register_to_num(char target){
 }
 
 int instruction_check(char *inst){
-    if(!strcmp(inst, "ADD") || !strcmp(inst, "ADDF") || !strcmp(inst, "ADDR") || 
-    !strcmp(inst, "AND") || !strcmp(inst, "CLEAR") || !strcmp(inst, "COMP") || 
-    !strcmp(inst, "COMPR") || !strcmp(inst, "DIV") || !strcmp(inst, "DIVF") || 
-    !strcmp(inst, "DIVR") || !strcmp(inst, "FIX") || !strcmp(inst, "J") ||
-    !strcmp(inst, "JEQ") || !strcmp(inst, "JGT") || !strcmp(inst, "JLT") || 
-    !strcmp(inst, "JSUB") || !strcmp(inst, "LDA") || !strcmp(inst, "LDB") || 
-    !strcmp(inst, "LDCH") || !strcmp(inst, "LDF") || !strcmp(inst, "LDT") ||
-    !strcmp(inst, "LDX") || !strcmp(inst, "MUL") || !strcmp(inst, "RSUB") ||
-    !strcmp(inst, "STA") || !strcmp(inst, "STB") || !strcmp(inst, "STCH") ||
-    !strcmp(inst, "STI") || !strcmp(inst, "STL") || !strcmp(inst, "STS") || 
-    !strcmp(inst, "STX") || !strcmp(inst, "SUB") || !strcmp(inst, "TD") || 
-    !strcmp(inst, "TIO") || !strcmp(inst, "TIX") || !strcmp(inst, "TIXR") ||
-    !strcmp(inst, "START") || !strcmp(inst, "BASE") || !strcmp(inst, "+JSUB") ||
-    !strcmp(inst, "BYTE") || !strcmp(inst, "WORD") || !strcmp(inst, "RESB") || 
-    !strcmp(inst, "RESW") || !strcmp(inst, "RD") || !strcmp(inst, "WD") ||
-    !strcmp(inst, "LDB")) {
-        return 1;
+    int i;
+    for (i = 0; i < op_index; i++){
+        if(!strcmp(inst, opcode[i].symbol))
+            return 1;
     }
+    if(!strcmp(inst, "BASE") || !strcmp(inst, "BYTE") || !strcmp(inst, "RESW") || !strcmp(inst, "RESB") || 
+        !strcmp(inst, "WORD") || !strcmp(inst, "START") || !strcmp(inst, "END"))
+        return 1;
+
     return -1;
 }
 

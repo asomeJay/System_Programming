@@ -25,25 +25,39 @@ op_element opcode[200];
 만약 열리지 않으면 에러를 출력하고 종료한다.
 열린다면 그 파일을 읽어서 Stdout 한다 */
 
+// HOMEWORK //
 void type(char * filename);
 void assemble(char * filename);
 void symbol();
-void push_symbol(int addr, char [LINE]);
+////////////////////////
+
+
+int push_symbol(int addr, char [LINE]);
+//check this instruction is valuable
+int instruction_check(char *);
+
+//Init, Setting objcode.
 void assemble_init();
+
+// according to instruction, increase address.
 void address_increase(int * addr, char [LINE], char[LINE]);
+// print assemble code into FILE pointer
 void print_assemble(FILE *fp, int addr, int location, char *symbol, char *operation, char *operand, char *objcode);
-void obj_make(int, char[LINE], char[LINE], char *, int format);
+// make objcode
+int obj_make(int, char[LINE], char[LINE], char *, int format);
+// parse instruction line by three chunk
+void parse_line(char[3][LINE], char[LINE]);
+
 void dex_to_bit(char *, char);
 void char_to_dex(int , char *, int *);
-void parse_line(char[3][LINE], char[LINE]);
 
 char register_to_num(char);
 char int_to_dex(int);
 char *binary_to_dex(char *);
 
 int stoi(char *);
+
+//find the symbol and return it's address
 int symbol_find(char[LINE]);
-
-
 
 #endif

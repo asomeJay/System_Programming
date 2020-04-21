@@ -6,7 +6,7 @@
 #define LINE 60
 #define OBJCODE 60
 #define MAX_CHAR 255
-#define OBJECT_TEXT_LENGTH 30
+#define OBJECT_TEXT_LENGTH 55
 
 typedef struct sym_element{
     char * symbol ;

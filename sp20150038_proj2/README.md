@@ -3,7 +3,7 @@
 이 프로그램이 의존하고 있는 코드는 크게 20150038, Basic, Memory, Opcode, Assemble입니다.
 그러므로 이들을 모두 컴파일해야 제가 원하는 sicsim 프로그램을 만들 수 있습니다. 
 
-20150038.out: 20150038.c Basic.c Memory.c Opcode.c
+20150038.out: 20150038.c Basic.c Memory.c Opcode.c Assemble.c
 			gcc -Wall -g -o 20150038.out Basic.c Memory.c  20150038.c Opcode.c Assemble.c -lm</h5>
 
 <h3>[Code Clean]</h3>

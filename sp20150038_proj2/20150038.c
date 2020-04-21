@@ -18,11 +18,11 @@
 int main(void)
 {
     init();     // 초기화 작업을 합니다.
-    assemble_init();
     opcode_make(); // 프로그램이 시작될 때 opcode list를 만들어줍니다.
 
     while (1) // quit을 받을 때까지 계속 명령어를 받습니다. 
     {
+        assemble_init();
         int blank;
         char inst_input[MAX_STR];
 

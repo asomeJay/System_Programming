@@ -1,17 +1,17 @@
 <h3>[컴파일 방법]</h3>
 <h5>Makefile을 이용했습니다.
-이 프로그램이 의존하고 있는 코드는 크게 20150038, Basic, Memory, Opcode 입니다.
+이 프로그램이 의존하고 있는 코드는 크게 20150038, Basic, Memory, Opcode, Assemble입니다.
 그러므로 이들을 모두 컴파일해야 제가 원하는 sicsim 프로그램을 만들 수 있습니다. 
 
 20150038.out: 20150038.c Basic.c Memory.c Opcode.c
-			gcc -Wall -g -o 20150038.out Basic.c Memory.c  20150038.c Opcode.c</h5>
+			gcc -Wall -g -o 20150038.out Basic.c Memory.c  20150038.c Opcode.c Assemble.c -lm</h5>
 
 <h3>[Code Clean]</h3>
 
-<h5>컴파일 과정에서 중간파일을 만들지 않기 때문에 20150038.out만 제거하면 됩니다
+<h5>컴파일 과정에서 중간파일을 만들지 않기 때문에 20150038.out와 *.lst *.obj만 제거하면 됩니다
 
 clean:
-			rm 20150038.out</h5>
+			rm 20150038.out *.lst *.obj</h5>
 
 <h3>[실행방법]</h3>
 <h5>./20150038.out 으로 실행할 수 있습니다

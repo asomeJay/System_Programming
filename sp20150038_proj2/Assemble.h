@@ -6,6 +6,7 @@
 #define LINE 60
 #define OBJCODE 60
 #define MAX_CHAR 255
+#define OBJECT_TEXT_LENGTH 30
 
 typedef struct sym_element{
     char * symbol ;
@@ -47,6 +48,11 @@ void print_assemble(FILE *fp, int addr, int location, char *symbol, char *operat
 int obj_make(int, char[LINE], char[LINE], char *, int format);
 // parse instruction line by three chunk
 void parse_line(char[3][LINE], char[LINE]);
+
+void formatting(char *, int digit, int);
+
+void modify_relocation(char *, int);
+void format4_plus_delete(char *dest, char *src);
 
 void dex_to_bit(char *, char);
 void char_to_dex(int , char *, int *);

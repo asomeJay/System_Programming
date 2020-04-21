@@ -118,11 +118,9 @@ void operation(char inst_input[MAX_STR], int blank){
             while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
                 inkey[j++] = inst_input[i++];
             }
-            printf("%s\n", inkey);
             assemble(inkey);
         }
         else if(!strcmp(blank1, "type")){
-            printf("TYPE\n");
             list_push(inst_input);
             int j = 0;
             char inkey[MAX_STR];
@@ -132,7 +130,6 @@ void operation(char inst_input[MAX_STR], int blank){
             while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
                 inkey[j++] = inst_input[i++];
             }
-            printf("%s\n", inkey);
             type(inkey);
         }
     }

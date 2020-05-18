@@ -22,7 +22,7 @@ clean:
 quit을 입력하면 종료할 수 있습니다. </h5>
 
 
-- [ ] 주소 지정 명령어 : progaddr
+- [x] 주소 지정 명령어 : progaddr
 - [ ] Linking Loader : loader
 - [ ] 프로그램 실행 : run
 - [ ] debug 명령어 : bp

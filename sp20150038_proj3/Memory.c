@@ -145,4 +145,8 @@ void reset(){
     }
 }
 
-void progaddr()
+/* program address를 수정합니다 */ 
+void progaddr(int addr){
+    address = addr;
+    return;
+}

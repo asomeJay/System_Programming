@@ -14,6 +14,7 @@
 #include "Opcode.h"
 #include "20150038.h"
 #include "Assemble.h"
+#include "Linking_Loader.h"
 
 int main(void)
 {
@@ -70,6 +71,15 @@ void operation(char inst_input[MAX_STR], int blank){
         else if(!strcmp(inst_input, "symbol")){
             list_push(inst_input);
             symbol();
+        }
+        else if(!strcmp(inst_input, "run")){
+            run();
+        }
+        else if(!strcmp(inst_input,"bp")){
+            bp()
+        }
+        else {
+            printf("BLANK 0 ERROR\n");
         }
     }
     else if (blank == 1){ //dump start처럼 띄어쓰기가 1개!
@@ -134,15 +144,15 @@ void operation(char inst_input[MAX_STR], int blank){
         }
         else if(!strcmp(blank1, "progaddr")){
             list_push(inst_input);
-            int j = 0;
+            int j = 0, b1 = 0;
             char inkey[MAX_STR];
 
-            while(inst_input[i] == ' ')
-                    i++;
-            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
-                inkey[j++] = inst_input[i++];
-            }
-            
+            b1 = last_number_extractor(inst_input, &i);
+            printf("progaddr :  %d\n", b1);
+            progaddr(b1);
+        }
+        else if(!strcmp(blank1, "loader")){
+            printf("1blank Loader\n");
         }
     }
     else if(blank == 2){ // edit address, value 처럼 빈 칸이 두개! 
@@ -196,6 +206,9 @@ void operation(char inst_input[MAX_STR], int blank){
             list_push(inst_input);
             dump(b1, b2, 2);    // b1 ~ b2 인쇄하기!
         }
+        else if(!strcmp(blank1, "loader")){
+            printf("2blank Loader\n");
+        }
     }
 
     else if(blank == 3){ // fill start, end, value 처럼 빈칸이 3개!
@@ -234,9 +247,13 @@ void operation(char inst_input[MAX_STR], int blank){
             }
             list_push(inst_input);
             fill(start, end, value); // fill 함수~
-        }
             return;
+        }
+        else if(!strcmp(blank1, "loader")){
+            printf("3blank LOADER");
+        }
     }
+
 }
 
 

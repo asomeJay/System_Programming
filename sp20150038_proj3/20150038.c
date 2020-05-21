@@ -15,6 +15,7 @@
 #include "20150038.h"
 #include "Assemble.h"
 #include "Linking_Loader.h"
+#include "Debug.h"
 
 int main(void)
 {
@@ -24,10 +25,11 @@ int main(void)
     while (1) // quit을 받을 때까지 계속 명령어를 받습니다. 
     {
         assemble_init();
-        int blank;
+        int blank, i;
         char inst_input[MAX_STR];
-
-        printf("sicsim> "); // 계속 출력하는 것
+        for (i = 0; i < MAX_STR; i++)
+            inst_input[i] = '0';
+        printf("sicsim> ");        // 계속 출력하는 것
         blank = in(inst_input);    // inst_input으로 명령 받고 명령어에 빈칸 몇 갠지 return 받는다.
         operation(inst_input, blank); // 받은 명령어를 통해 명령을 수행한다. 
     }
@@ -40,7 +42,11 @@ int main(void)
 
 // list_push는 history에 추가하려고 넣었다. 
 void operation(char inst_input[MAX_STR], int blank){
-    if(blank == 0){ // help 처럼 빈칸이 하나도 없는 명령어!
+    FILE **fp_list = (FILE **)malloc(sizeof(FILE *) * 3);
+    fp_list[0] = fp_list[1] = fp_list[2] = NULL;
+
+    if (blank == 0)
+    { // help 처럼 빈칸이 하나도 없는 명령어!
         if(!strcmp(inst_input, "dir") || !strcmp(inst_input, "d")){
             list_push(inst_input);
             dir();
@@ -73,10 +79,12 @@ void operation(char inst_input[MAX_STR], int blank){
             symbol();
         }
         else if(!strcmp(inst_input, "run")){
+            list_push(inst_input);
             run();
         }
         else if(!strcmp(inst_input,"bp")){
-            bp()
+            list_push(inst_input);
+            bp(); // 현재 지정된 break point를 화면에 출력한다.
         }
         else {
             printf("BLANK 0 ERROR\n");
@@ -109,7 +117,9 @@ void operation(char inst_input[MAX_STR], int blank){
 
             while(inst_input[i] == ' ')
                     i++;
-            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+            while (j < MAX_STR && i < MAX_STR && inst_input[i] != ' '
+            && inst_input[i] != '\0' && inst_input[i] != '\n')
+            {
                 inkey[j++] = inst_input[i++];
             }
             // 이 함수는 매개변수가 문자열이다.
@@ -125,7 +135,9 @@ void operation(char inst_input[MAX_STR], int blank){
 
             while(inst_input[i] == ' ')
                     i++;
-            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+            while (j < MAX_STR && i < MAX_STR && inst_input[i] != ' '
+            && inst_input[i] != '\0' && inst_input[i] != '\n')
+            {
                 inkey[j++] = inst_input[i++];
             }
             assemble(inkey);
@@ -137,22 +149,58 @@ void operation(char inst_input[MAX_STR], int blank){
 
             while(inst_input[i] == ' ')
                     i++;
-            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+            while (j < MAX_STR && i < MAX_STR && inst_input[i] != ' '
+            && inst_input[i] != '\0' && inst_input[i] != '\n')
+            {
                 inkey[j++] = inst_input[i++];
             }
             type(inkey);
         }
         else if(!strcmp(blank1, "progaddr")){
             list_push(inst_input);
-            int j = 0, b1 = 0;
-            char inkey[MAX_STR];
+            int b1 = 0;
 
             b1 = last_number_extractor(inst_input, &i);
             printf("progaddr :  %d\n", b1);
             progaddr(b1);
         }
         else if(!strcmp(blank1, "loader")){
-            printf("1blank Loader\n");
+            printf("LOADER ENTER\n");
+            int j = 0;
+            char inkey[MAX_STR];
+
+            while(inst_input[i] == ' ')
+                    i++;
+            while (j < MAX_STR && i < MAX_STR && inst_input[i] != ' '
+            && inst_input[i] != '\0' && inst_input[i] != '\n')
+            {
+                inkey[j++] = inst_input[i++];
+            }
+            inkey[j] = '\0';
+
+            // filename Error Check
+            if(strcmp(inkey + strlen(inkey) - 4, ".obj"))
+                return;
+            
+            list_push(inst_input);
+            // FILE *fp = fopen((const char*)inkey, "r");
+            fp_list[0] = fopen((const char*)inkey, "r");
+            //fp_list[0] = fp;
+            loader(fp_list);
+        }
+        else if(!strcmp(inst_input, "bp clear")){
+            bp_clear();
+        }
+        else if(!strcmp(blank1, "bp")){
+            list_push(inst_input);
+            int b1 = 0;
+
+            b1 = last_number_extractor(inst_input, &i);
+            printf("progaddr :  %d\n", b1);
+            bp(b1);
+        }
+        else {
+            printf("BLANK 1 ERROR\n");
         }
     }
     else if(blank == 2){ // edit address, value 처럼 빈 칸이 두개! 
@@ -207,7 +255,35 @@ void operation(char inst_input[MAX_STR], int blank){
             dump(b1, b2, 2);    // b1 ~ b2 인쇄하기!
         }
         else if(!strcmp(blank1, "loader")){
-            printf("2blank Loader\n");
+            printf("%s\n", inst_input);
+            int j = 0;
+            char inkey[MAX_STR], inkey2[MAX_STR];
+
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey[j++] = inst_input[i++];
+            }
+            inkey[j] = '\0';
+            if(strcmp(inkey + strlen(inkey) - 4, ".obj")){
+                return;
+            }
+
+            j = 0;
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey2[j++] = inst_input[i++];
+            }
+            inkey2[j] = '\0';
+            if(strcmp(inkey2 + strlen(inkey2) - 4, ".obj")){
+                return;
+            }
+
+            list_push(inst_input);
+            fp_list[0] = fopen((const char*)inkey, "r");
+            fp_list[1] = fopen((const char*)inkey2, "r");
+            loader(fp_list);
         }
     }
 
@@ -250,7 +326,48 @@ void operation(char inst_input[MAX_STR], int blank){
             return;
         }
         else if(!strcmp(blank1, "loader")){
-            printf("3blank LOADER");
+            int j = 0;
+            char inkey[MAX_STR], inkey2[MAX_STR], inkey3[MAX_STR];
+
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey[j++] = inst_input[i++];
+            }
+            inkey[j] = '\0';
+            if(strcmp(inkey + strlen(inkey) - 4, ".obj")){
+                return;
+            }
+
+            j = 0;
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey2[j++] = inst_input[i++];
+            }
+            inkey2[j] = '\0';
+            if(strcmp(inkey2 + strlen(inkey2) - 4, ".obj")){
+                return;
+            }
+
+            j = 0;
+            while(inst_input[i] == ' ')
+                    i++;
+            while(j < MAX_STR && i < MAX_STR && inst_input[i] != ' '){
+                inkey3[j++] = inst_input[i++];
+            }
+            inkey3[j] = '\0';
+            if(strcmp(inkey3 + strlen(inkey3) - 4, ".obj")){
+                return;
+            }
+
+            list_push(inst_input);
+
+            fp_list[0] = fopen((const char*)inkey, "r");
+            fp_list[1] = fopen((const char*)inkey2, "r");
+            fp_list[2] = fopen((const char*)inkey3, "r");
+
+            loader(fp_list);
         }
     }
 

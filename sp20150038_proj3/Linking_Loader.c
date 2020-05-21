@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+int linking_address = 0;
+
 void run(){
     printf("RUN\n");
 }
@@ -30,11 +32,10 @@ void loader(FILE **fp_list){
 int link_loader_pass1(FILE ** fp_list){
     int i, j, k, fp_index, control_section_address, es_address;
     char current_record[MAX_RECORD], cs_name[MAX_RECORD], es_name[MAX_RECORD];
-    char current_address[MAX_RECORD];
     i = 0; j = 0; k = 0; fp_index = 0;
     control_section_address = 0;
 
-    while (fp_list[i] != NULL)  {
+    while (fp_list[fp_index] != NULL)  {
         fgets(current_record, MAX_RECORD, fp_list[fp_index]);
         if (current_record[strlen(current_record) - 1] == '\n')
             current_record[strlen(current_record) - 1] = '\0';
@@ -88,7 +89,7 @@ int link_loader_pass1(FILE ** fp_list){
 
                 // search ESTAB for symbol name
                 //if found -> set error flag
-                if(!(search_estab(es_name) == CANT_FIND)){
+                if(!(is_estab(es_name) == CANT_FIND)){
                     printf("ESTAB ERROR\n");
                     return ERROR;
                 }
@@ -106,21 +107,27 @@ int link_loader_pass1(FILE ** fp_list){
 
     control_section_address += es_address; // increment CSADDR
     fp_index++;
-
+        /* Load할 파일이 남아있는가 */ 
         if (fp_list[fp_index] != NULL) // add CSLTH to CSADDR
-        { 
-            control_section_address = 
+        {
+            int m;
+            for (m = 0; m < MAX_RECORD; m++)  {
+                cs_name[m] = 0;
+                es_name[m] = 0;
+            }
         }
     }
+    end_address = control_section_address;
+    return control_section_address - linking_address;
 }
 
 int link_loader_pass2(FILE **fp_list){
-    return;
+    return 0;
 }
 
 int is_control_section(char * cs_name){
-    /* Symbol Table에서 그게 있는지 찾는다. */ 
-
+    /* Symbol Table에서 그게 있는지 찾는다. */
+    return 0;
 }
 
 int is_estab(char * a){
@@ -132,4 +139,10 @@ int record_check(char target){
         return 0;
     else
         return 1;
+}
+
+/* program address를 수정합니다 */ 
+void program_addr(int addr){
+    linking_address = addr;
+    return;
 }

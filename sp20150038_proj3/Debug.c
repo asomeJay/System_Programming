@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 // break Point
-void bp_set(int address){
-    printf("bp_set : %d\n", address);
+void bp_set(int addr){
+    printf("bp_set : %d\n", addr);
     return;
 }
 

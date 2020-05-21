@@ -162,7 +162,7 @@ void operation(char inst_input[MAX_STR], int blank){
 
             b1 = last_number_extractor(inst_input, &i);
             printf("progaddr :  %d\n", b1);
-            progaddr(b1);
+            program_addr(b1);
         }
         else if(!strcmp(blank1, "loader")){
             printf("LOADER ENTER\n");
@@ -183,9 +183,7 @@ void operation(char inst_input[MAX_STR], int blank){
                 return;
             
             list_push(inst_input);
-            // FILE *fp = fopen((const char*)inkey, "r");
             fp_list[0] = fopen((const char*)inkey, "r");
-            //fp_list[0] = fp;
             loader(fp_list);
         }
         else if(!strcmp(inst_input, "bp clear")){
@@ -210,10 +208,10 @@ void operation(char inst_input[MAX_STR], int blank){
 
         if (!strcmp(blank1, "edit") || !strcmp(blank1, "e"))
         {
-            int address, value;
+            int addr, value;
 
-            address = first_number_extractor(inst_input, &i); // 첫번째 매개변수 추출 
-            if(address == ERR){
+            addr = first_number_extractor(inst_input, &i); // 첫번째 매개변수 추출 
+            if(addr == ERR){
                 printf("EDIT 'ADDRESS' ERROR\n");
                 return;
             }
@@ -229,7 +227,7 @@ void operation(char inst_input[MAX_STR], int blank){
                 return;
             }
             list_push(inst_input);
-            edit(address, value);   //함수 실행 
+            edit(addr, value);   //함수 실행 
         }
 
         else if (!strcmp(blank1, "dump") || !strcmp(blank1, "du"))

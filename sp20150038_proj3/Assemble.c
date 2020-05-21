@@ -60,7 +60,7 @@ void type(char * filename){
 
 /* 입력된 filename을 assemble 한다. */
 void assemble(char * filename){
-    int address, line_number, i;
+    int addr, line_number, i;
     char list_filename[255], obj_filename[255];
 
     // 파일을 연다. 문제가 있으면 에러 출력
@@ -101,7 +101,7 @@ void assemble(char * filename){
     Format 4: 4byte
     */
 
-    address = 0;
+    addr = 0;
     line_number = 0; 
     
     while (1) {
@@ -124,7 +124,7 @@ void assemble(char * filename){
         if (parsed_line[0][0] == 'N')  {   // No Symbol => No need to into
             if (parsed_line[1][0] == '+')  {// format4
             /* Format 4는 좀 특이하게 생겼으므로 특이 취급을 해준다. */
-                address += 4;
+                addr += 4;
 
                 char for_check[10];
                 format4_plus_delete(for_check, parsed_line[1]);
@@ -157,7 +157,7 @@ void assemble(char * filename){
             else if (!strcmp(parsed_line[1], "END"))
                 break;
             else
-                address_increase(&address, parsed_line[1], parsed_line[2]);
+                address_increase(&addr, parsed_line[1], parsed_line[2]);
             }
         }
         else  { // Yes Symbol => need to Symbolize. 
@@ -193,19 +193,19 @@ void assemble(char * filename){
                     temp *= 16;
                     temp += (parsed_line[2][i] - '0');                
                 }
-                address = temp;
+                addr = temp;
             }
             else {
                 if(parsed_line[0][0] >= 'A' && parsed_line[0][0] <= 'Z'){
                     // -1이 나오면 중복 삽입이므로 오류! 
 
-                    if(push_symbol(address, parsed_line[0]) == -1){
+                    if(push_symbol(addr, parsed_line[0]) == -1){
                         printf("ERROR at %d LINE\n", line_number);
                         printf("%s\n", src_line);
                         return;
                     }
                 }
-                address_increase(&address, parsed_line[1], parsed_line[2]);
+                address_increase(&addr, parsed_line[1], parsed_line[2]);
             }
         }
     }
@@ -226,8 +226,8 @@ void assemble(char * filename){
     }
 
     // .asm 파일을 한 줄 씩 읽어들인다.
-    last_address = address; 
-    address = 0;
+    last_address = addr; 
+    addr = 0;
     line_number = 0; 
     char ts[2], objfile[255], modifys[32768], now[12];
     objfile[0] = '\0';
@@ -259,7 +259,7 @@ void assemble(char * filename){
                 char t_inst[20];
                 format4_plus_delete(t_inst, parsed_line[1]);
 
-                if(obj_make(address, t_inst, parsed_line[2], obj, 4) == -1){
+                if(obj_make(addr, t_inst, parsed_line[2], obj, 4) == -1){
                     printf("NO SYMBOL PLUS format 4 ERROR %d %s\n", line_number, src_line);
                     fclose(f_lst);
                     fclose(f_obj);
@@ -268,12 +268,12 @@ void assemble(char * filename){
                     return;
                 };
                 if(!(parsed_line[2][0] == '#' && (parsed_line[2][1] >= '0' && parsed_line[2][1] <= '9'))){
-                    modify_relocation(now, address);
+                    modify_relocation(now, addr);
                     strcat(modifys, now);
                 }
                     
-                print_assemble(f_lst, line_number, address, " ", parsed_line[1], parsed_line[2], obj);
-                address += 4;
+                print_assemble(f_lst, line_number, addr, " ", parsed_line[1], parsed_line[2], obj);
+                addr += 4;
             }
 
             else if(!strcmp(parsed_line[1], "BASE"))  { // BASE No OBJ code 
@@ -301,7 +301,7 @@ void assemble(char * filename){
             }
 
             else {
-                if(obj_make(address, parsed_line[1], parsed_line[2], obj, 3) == -1){
+                if(obj_make(addr, parsed_line[1], parsed_line[2], obj, 3) == -1){
                     printf("NO SYMMMMBOL ERROR %d %s\n", line_number, src_line);
                     fclose(f_lst);
                     fclose(f_obj);
@@ -310,21 +310,21 @@ void assemble(char * filename){
                     return;
                 }
                 if(!strcmp(parsed_line[1], "RSUB")){
-                    print_assemble(f_lst, line_number, address, " ", parsed_line[1], " ", obj);
+                    print_assemble(f_lst, line_number, addr, " ", parsed_line[1], " ", obj);
                 }
                 else {
-                    print_assemble(f_lst, line_number, address, " ", parsed_line[1], parsed_line[2], obj);
+                    print_assemble(f_lst, line_number, addr, " ", parsed_line[1], parsed_line[2], obj);
                 }
                 
-                address_increase(&address, parsed_line[1], parsed_line[2]);
+                address_increase(&addr, parsed_line[1], parsed_line[2]);
             }
         }
         else  {  // YES Symbol ! 
             if (!strcmp(parsed_line[1], "START"))  {
-                start_address = address;
-                rs = address;
-                fprintf(f_obj, "H%-6s %06X%06X\n", parsed_line[0], address, last_address);
-                print_assemble(f_lst, line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], " ");
+                start_address = addr;
+                rs = addr;
+                fprintf(f_obj, "H%-6s %06X%06X\n", parsed_line[0], addr, last_address);
+                print_assemble(f_lst, line_number, addr, parsed_line[0], parsed_line[1], parsed_line[2], " ");
                 continue;
             }
             else if(parsed_line[1][0] == '+')  { // format 4
@@ -332,7 +332,7 @@ void assemble(char * filename){
 
                 format4_plus_delete(t_inst, parsed_line[1]);
 
-                if (obj_make(address, t_inst, parsed_line[2], obj, 4) == -1)  {
+                if (obj_make(addr, t_inst, parsed_line[2], obj, 4) == -1)  {
                     printf("ERROR %d %s\n", line_number, src_line);
                     fclose(f_lst);
                     fclose(f_obj);
@@ -341,22 +341,22 @@ void assemble(char * filename){
                     return;
                 }
                 if(!(parsed_line[2][0] == '#' && (parsed_line[2][1] >= '0' && parsed_line[2][1] <= '9'))){
-                    modify_relocation(now, address);
+                    modify_relocation(now, addr);
                     strcat(modifys, now);
                 }
 
-                print_assemble(f_lst, line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
-                address += 4;
+                print_assemble(f_lst, line_number, addr, parsed_line[0], parsed_line[1], parsed_line[2], obj);
+                addr += 4;
             }
             else {
                 if(!strcmp(parsed_line[1], "RESW") || !strcmp(parsed_line[1], "RESB")) {
                     if((int)strlen(objfile) > 0)  {
                         fprintf(f_obj, "T%06X%02X%s\n", start_address, (int)strlen(objfile) ,objfile);
-                        start_address = address;
+                        start_address = addr;
                         strcpy(objfile, "");
                     }
                 }
-                if(obj_make(address, parsed_line[1], parsed_line[2], obj, 3) == -1){
+                if(obj_make(addr, parsed_line[1], parsed_line[2], obj, 3) == -1){
                     printf("ERROR %d %s\n", line_number, src_line);
                     fclose(f_lst);
                     fclose(f_obj);
@@ -364,8 +364,8 @@ void assemble(char * filename){
                     remove(obj_filename);
                     return;
                 } // obj code make
-                print_assemble(f_lst, line_number, address, parsed_line[0], parsed_line[1], parsed_line[2], obj);
-                address_increase(&address, parsed_line[1], parsed_line[2]);
+                print_assemble(f_lst, line_number, addr, parsed_line[0], parsed_line[1], parsed_line[2], obj);
+                address_increase(&addr, parsed_line[1], parsed_line[2]);
             }
         }
 
@@ -376,7 +376,7 @@ void assemble(char * filename){
 
         if((int)strlen(objfile) > OBJECT_TEXT_LENGTH){ // Dont over Mine. 
             fprintf(f_obj, "T%06X%02X%s\n", start_address, (int)strlen(objfile) ,objfile);
-            start_address = address;
+            start_address = addr;
             strcpy(objfile, "");
         }
     }
@@ -1131,7 +1131,8 @@ void print_assemble(FILE * fp, int addr, int location, char *symbol, char *opera
             addr, location, symbol, operation, operand, objcode);
 }
 
-/* 이름은 마치 character 값을 변환하는 것 같지만, 실제로는 입력된 t를 두 자리 16진수 비트로 바꿈 */
+/* 이름은 마치 character 값을 변환하는 것 같지만, 
+실제로는 입력된 t를 두 자리 16진수 비트로 바꿈 */
 void char_to_dex(int t, char *temp, int *index){
     temp[(*index)++] = (int)t / 16;
     if(temp[(*index)-1] >= 10){

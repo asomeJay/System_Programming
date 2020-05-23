@@ -1,4 +1,5 @@
 #include "Linking_Loader.h"
+#include "Memory.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -121,13 +122,91 @@ int link_loader_pass1(FILE ** fp_list){
     return control_section_address - linking_address;
 }
 
-int link_loader_pass2(FILE **fp_list){
+int link_loader_pass2(FILE **fp_list)  {
+    int i = 0, j, k, fp_index = 0, current_adrress;
+    int CSLTH, control_section_address;
+    char current_record[MAX_RECORD];
+
+    control_section_address = program_addr;
+    while (fp_list[fp_index])// while not end of input do
+    {                                                         
+        fgets(current_record, MAX_RECORD, fp_list[fp_index]); // read next input record
+        if(current_record[strlen(current_record) - 1] == '\n')
+            current_record[strlen(current_record) - 1] = '\0';
+        // HEADER RECORD
+        /* set CSLTH to control section length */
+        CSLTH = symbol_table[symbol_index - 1].addr;
+
+        fgets(current_record, MAX_RECORD, fp_list[fp_index]); // read next input record
+        if(current_record[strlen(current_record) - 1] == '\n')
+            current_record[strlen(current_record) - 1] = '\0';
+
+        while(current_record[0] != 'E'){// while record type != E do
+            if(current_record[0] == 'T')  {
+                // if record type == 'T' then
+                // convert into internal representation
+                // T Record의 2 ~ 6은 offset을 나타내고 7 ~ 8은 길이를 나타낸다.
+                char temp[10];
+                memset(temp, '\0', 10);
+                strncpy(temp, current_record + 1, 6);
+
+                int offset = hex_to_dec(temp);
+
+                memset(temp, '\0', 10);
+                strncpy(temp, current_record + 7, 2);
+
+                int length = hex_to_dec(temp);
+                
+                // 그 다음 record의 2 byte씩 묶어서 decimal로 전환한다.
+                for (j = 0; j < 10; j++){
+                    memset(temp, '\0', 10);
+                    strncpy(temp, current_record + 9 + j * 2, 2);
+                    // 전환된 값을 메모리에 올린다.    
+                    memory[control_section_address + offset + j] = hex_to_dec(temp);
+                }
+
+            }
+            else if(current_record[0] == 'M'){ // modification Record
+                /* 
+                2 - 7 : offset
+                8 - 9 : length 
+                */
+                
+            }
+        }
+
+        
+
+        // move object code from record to location
+
+        // record type == 'M' 
+
+        // search ESTAB for modifying symbol name
+
+        // if found 
+
+        // add or subtract symbol value at location
+
+        // set error flag(undefined external symbol
+        
+
+        )
+    }
+
     return 0;
 }
 
-int is_control_section(char * cs_name){
+int is_control_section(char * cs_name)  {
     /* Symbol Table에서 그게 있는지 찾는다. */
-    return 0;
+    int i, j;
+    i = 0;
+
+    for(i = 0; i < symbol_index; i++){
+        if(!strcmp(cs_name, symbol_table[i].symbol)){
+            return CAN_FIND;
+        }
+    }
+    return CANT_FIND;
 }
 
 int is_estab(char * a){
@@ -145,4 +224,13 @@ int record_check(char target){
 void program_addr(int addr){
     linking_address = addr;
     return;
+}
+
+int hex_to_dec(char * hex)  {
+    int i, dec = 0;
+    for (i = 0; i < strlen(hex); i++)  {
+        dec *= 16;
+        dec += (hex[i] - '0');
+    }
+    return dec;
 }

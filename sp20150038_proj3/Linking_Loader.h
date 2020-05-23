@@ -7,9 +7,16 @@
 
 #define REG_COUNT 9
 #define CANT_FIND -1
+#define CAN_FIND 1
 #define ERROR -1
 #define MAX_RECORD 255
 
+/*
+typedef struct sym_element{
+    char * symbol ;
+    int addr;
+} element;
+*/
 element symbol_table[200];
 
 int end_address;
@@ -25,6 +32,6 @@ int link_loader_pass2(FILE **);
 int is_control_section(char *);
 int is_estab(char *);
 int record_check(char);
-
+int hex_to_dec(char *);
 
 #endif // __LINKING_H__

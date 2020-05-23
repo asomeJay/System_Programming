@@ -142,9 +142,3 @@ void reset(){
         memory[i] = 0;
     }
 }
-
-/* program address를 수정합니다 */ 
-void progaddr(int addr){
-    address = addr;
-    return;
-}

@@ -125,7 +125,7 @@ int link_loader_pass1(FILE ** fp_list){
 int link_loader_pass2(FILE **fp_list)  {
     int i = 0, j, k, fp_index = 0, current_adrress;
     int CSLTH, control_section_address;
-    char current_record[MAX_RECORD];
+    char current_record[MAX_RECORD], temp[20];
 
     control_section_address = program_addr;
     while (fp_list[fp_index])// while not end of input do
@@ -146,7 +146,6 @@ int link_loader_pass2(FILE **fp_list)  {
                 // if record type == 'T' then
                 // convert into internal representation
                 // T Record의 2 ~ 6은 offset을 나타내고 7 ~ 8은 길이를 나타낸다.
-                char temp[10];
                 memset(temp, '\0', 10);
                 strncpy(temp, current_record + 1, 6);
 
@@ -167,10 +166,39 @@ int link_loader_pass2(FILE **fp_list)  {
 
             }
             else if(current_record[0] == 'M'){ // modification Record
+            // record type == 'M' 
                 /* 
                 2 - 7 : offset
                 8 - 9 : length 
+                etc : reference Number
                 */
+                memset(temp, '\0', 10);
+                strncpy(temp, current_record + 1, 6);
+
+                int offset = hex_to_dec(temp);
+
+                memset(temp, '\0', 10);
+                strncpy(temp, current_record + 7, 2);
+                int length = hex_to_dec(temp);
+
+                // search ESTAB for modifying symbol name
+                // 그 전에 reference Number부터 얻어내자 이번 플젝은 두자리안임
+                memset(temp, '\0', 10);
+                strncpy(temp, current_record + 10, 2);
+                int reference_number = hex_to_dec(temp);
+
+                // reference_number는 널뛰기 안함.
+                if(reference_number > symbol_index){
+                    // set error flag. (undefined external symbol)
+                    printf("ERROR AT LOADER PASS2 : No reference Num\n");
+                    return ERROR;
+                }
+
+                // reference_number에 해당하는 ES 존재~
+                // add or subtract symbol value at location
+                // (CSADDR + specified address)
+                
+
                 
             }
         }
@@ -179,9 +207,9 @@ int link_loader_pass2(FILE **fp_list)  {
 
         // move object code from record to location
 
-        // record type == 'M' 
+        
 
-        // search ESTAB for modifying symbol name
+
 
         // if found 
 

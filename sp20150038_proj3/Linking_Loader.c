@@ -26,8 +26,22 @@ void loader(FILE **fp_list){
         registers[i] = 0; // initializing registers
     }
 
-    link_loader_pass1(fp_list);
-    link_loader_pass2(fp_list);
+    int program_length = link_loader_pass1(fp_list);
+    if(program_length == ERROR)
+        return;
+    
+    int execute_address = link_loader_pass2(fp_list);
+    if(execute_address == ERROR)
+        return;
+
+    for (i = 0; i < symbol_index; i++){
+        printf("symbolsymbolsymbol\n");
+    }
+    symbol_index = 0;
+    printf("-----------------------------------------\n");
+    printF("\t\t\t\t\t Total length\t%04X\n", program_length);
+
+    return;
 }
 
 int link_loader_pass1(FILE ** fp_list){
@@ -196,32 +210,24 @@ int link_loader_pass2(FILE **fp_list)  {
 
                 // reference_number에 해당하는 ES 존재~
                 // add or subtract symbol value at location
-                // (CSADDR + specified address)
-                
 
                 
             }
+            // if address is specified(in End record) set EXECADDER to
+            // CSADDR + specified address
+
+            /* add CSLTH to CSADDR*/
+            fgets(current_record, MAX_RECORD, fp_list[fp_index]);
+            if(current_record[strlen(current_record) - 1] == '\n')
+                current_record[strlen(current_record) - 1] = '\0';
+
+            control_section_address += CSLTH;
+
+            fp_index++;
+            if(fp_index > 3)
+                break;
         }
-
-        
-
-        // move object code from record to location
-
-        
-
-
-
-        // if found 
-
-        // add or subtract symbol value at location
-
-        // set error flag(undefined external symbol
-        
-
-        )
-    }
-
-    return 0;
+        return EXECADDR;
 }
 
 int is_control_section(char * cs_name)  {

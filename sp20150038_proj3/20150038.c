@@ -161,11 +161,9 @@ void operation(char inst_input[MAX_STR], int blank){
             int b1 = 0;
 
             b1 = last_number_extractor(inst_input, &i);
-            printf("progaddr :  %d\n", b1);
             program_addr(b1);
         }
         else if(!strcmp(blank1, "loader")){
-            printf("LOADER ENTER\n");
             int j = 0;
             char inkey[MAX_STR];
 
@@ -194,8 +192,7 @@ void operation(char inst_input[MAX_STR], int blank){
             int b1 = 0;
 
             b1 = last_number_extractor(inst_input, &i);
-            printf("progaddr :  %d\n", b1);
-            bp(b1);
+            bp_set(b1);
         }
         else {
             printf("BLANK 1 ERROR\n");
@@ -253,7 +250,6 @@ void operation(char inst_input[MAX_STR], int blank){
             dump(b1, b2, 2);    // b1 ~ b2 인쇄하기!
         }
         else if(!strcmp(blank1, "loader")){
-            printf("%s\n", inst_input);
             int j = 0;
             char inkey[MAX_STR], inkey2[MAX_STR];
 

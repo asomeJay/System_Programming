@@ -10,7 +10,15 @@
 #define CAN_FIND 1
 #define ERROR -1
 #define MAX_RECORD 255
-
+#define A 0
+#define X 1
+#define L 2
+#define B 3
+#define S 4
+#define T 5
+#define F 6
+#define PC 7
+#define SW 8
 /*
 typedef struct sym_element{
     char * symbol ;
@@ -18,10 +26,14 @@ typedef struct sym_element{
 } element;
 */
 element symbol_table[200];
+element ext_table[200];
 
 int end_address;
 int registers[REG_COUNT];
-int symbol_index;
+
+int symbol_index, ext_index;
+int execute_address, current_record_address, linking_address;
+int CSADDR, EXECADDR;
 
 void run();
 void loader(FILE **);

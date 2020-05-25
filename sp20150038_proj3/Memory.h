@@ -10,5 +10,4 @@ void edit(int, int);
 void fill(int, int, int);
 void reset();
 
-void progaddr(int);
 #endif

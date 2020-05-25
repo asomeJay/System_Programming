@@ -5,7 +5,7 @@ int break_index;
 
 // break Point
 void bp_set(int addr){
-    break_point[break_index] = addr;
+    break_point[break_index++] = addr;
     return;
 }
 
@@ -18,8 +18,22 @@ void bp_clear(){
 // sicsim에 존재하는 breakpoint를 전부 화면에 출력한다.
 void bp(){
     int i;
-    for (i = 0; i < break_index; i++){
-        printf("%d\n", break_point[i]);
+    printf("\n\tbreakpoint\t\t\t\n");
+    printf("\t-----------\n");
+    
+    for (i = 0; i < break_index; i++)
+    {
+        printf("\t%d\n", break_point[i]);
     }
-        return;
+    return;
+}
+
+int bp_search(int target){
+    int i;
+    for (i = 0; i < break_index; i++){
+        if(target == break_point[i]){
+            return 1;
+        }
+    }
+    return 0;
 }

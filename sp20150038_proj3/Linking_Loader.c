@@ -1,23 +1,70 @@
 #include "Linking_Loader.h"
 #include "Memory.h"
+#include "Debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int linking_address = 0;
+void run()
+{
+    int current_inst, current_format; current_record_address = -1;
+    int i;
+    if (current_record_address == -1) //At the firsttime
+        current_record_address = execute_address;
+    registers[PC] = execute_address;
+    
+    while(current_record_address < end_address){
+        current_inst = memory[current_record_address] % 0XFC;
+        // decode opcode (instruction)
+        // nixbpe
+        int format_standard = memory[current_record_address] / 0XF;
+        printf("format_standara : %d \n", format_standard);
+        switch (format_standard)  {
+        case 0xE:
+            if (memory[current_record_address + 1] & 0XF)  {
+                // e bit is set
+                current_format = 4;
+            }
+            else  {
+                current_format = 3;
+            }
+            break;
+        case 0xB:
+            current_format = 2; // format 2
+        }
 
-void run(){
-    printf("RUN\n");
+        /* format1 = 1byte format2 = 2byte, format3 = 3byte, format4 = 4byte*/
+        for (i = current_record_address; i < current_record_address + current_format; i++){
+            if(bp_search(i) == 1) {
+                printf("A : %06X  X : %06X\n", registers[A], registers[X]);
+                printf("L : %06X  PC : %06X\n", registers[L], registers[PC]);
+                printf("B : %06X  S : %06X\n", registers[B], registers[S]);
+            }
+        }
+        // memory empty? -> continue(PC update)
+        if(!memory[current_record_address]){
+            registers[PC]++;
+            current_record_address = registers[PC];
+            continue;
+        }
+
+        // update PC Register
+        registers[PC] += current_format;
+        current_record_address = registers[PC];
+    }
+    printf("A : %06X  X : %06X\n", registers[A], registers[X]);
+    printf("L : %06X  PC : %06X\n", registers[L], registers[PC]);
+    printf("B : %06X  S : %06X\n", registers[B], registers[S]);
 }
 
 void loader(FILE **fp_list){
-    printf("LOADER ENTER\n");
     int i;
-
     // Symbol Table Initializing
     for (i = 0; i < 200; i++) {
         symbol_table[i].symbol = NULL;
         symbol_table[i].addr = 0;
+        ext_table[i].symbol = NULL;
+        ext_table[i].addr = 0;
     }
     // Initi FInish
 
@@ -26,22 +73,30 @@ void loader(FILE **fp_list){
         registers[i] = 0; // initializing registers
     }
 
-    int program_length = link_loader_pass1(fp_list);
+    int program_length = link_loader_pass1(fp_list); // pass1 실행
     if(program_length == ERROR)
         return;
-    
-    int execute_address = link_loader_pass2(fp_list);
+    int execute_address = link_loader_pass2(fp_list); // pass2 실행
     if(execute_address == ERROR)
         return;
 
-    for (i = 0; i < symbol_index; i++){
-        printf("symbolsymbolsymbol\n");
-    }
     symbol_index = 0;
-    printf("-----------------------------------------\n");
-    printF("\t\t\t\t\t Total length\t%04X\n", program_length);
+    for (i = 0; i < symbol_index; i++){
+        printf("%s : %d\n", symbol_table[i].symbol, symbol_table[i].addr);
+    }
+        printf("-----------------------------------------\n");
+        printf("\t\t\t\t\t Total length\t%04X\n", program_length);
 
-    return;
+        registers[L] = linking_address + program_length;
+
+        for (i = 0; i < 3; i++)
+        {
+            if(fp_list[i] != NULL){
+                fclose(fp_list[i]);
+            }
+        }
+
+        return;
 }
 
 int link_loader_pass1(FILE ** fp_list){
@@ -50,7 +105,8 @@ int link_loader_pass1(FILE ** fp_list){
     i = 0; j = 0; k = 0; fp_index = 0;
     control_section_address = 0;
 
-    while (fp_list[fp_index] != NULL)  {
+    while (fp_list[fp_index] != NULL)
+    {
         fgets(current_record, MAX_RECORD, fp_list[fp_index]);
         if (current_record[strlen(current_record) - 1] == '\n')
             current_record[strlen(current_record) - 1] = '\0';
@@ -60,21 +116,21 @@ int link_loader_pass1(FILE ** fp_list){
         while (current_record[j] != ' ') {
             cs_name[k++] = current_record[j++];
         } cs_name[k] = '\0';
-        
-        while (current_record[j] == ' ') 
+        while (current_record[j] == ' ')
             j++;
         
         /* Getting Control Section Address */ 
-        while(record_check(current_record[j])){
+        while(current_record[j] != '\n'){
             control_section_address *= 10;
-            control_section_address = current_record[j] - '0';
+            control_section_address += (current_record[j++] - '0');
         }
-        printf("controlsection : %d\n", control_section_address);
 
-        if(is_control_section(cs_name)){ // Already Control Section there
+        if(is_control_section(cs_name)==CAN_FIND){ // Already Control Section there
             printf("Control Section already be");
             return ERROR; // return ERROR
         }
+        symbol_table[symbol_index].addr = control_section_address;
+        symbol_table[symbol_index++].symbol = cs_name;
 
         // If you are here, this control section name is new!
 
@@ -88,7 +144,7 @@ int link_loader_pass1(FILE ** fp_list){
                 // for each symbol in the record
                 int m = 1, n = 0;
                 /* Getting EsNAME */ 
-                while(record_check(current_record[m])){
+                while(current_record[m] != ' '){
                     es_name[n++] = current_record[m++];
                 }
                 es_name[n] = '\0';
@@ -97,9 +153,9 @@ int link_loader_pass1(FILE ** fp_list){
                     m++;
 
                 /* Getting ES ADDRESS*/
-                while(record_check(current_record[m])){
+                while(current_record[m] != ' ' ){
                     es_address *= 10;
-                    es_address = current_record[m] - '0';
+                    es_address += current_record[m] - '0';
                 }
 
                 // search ESTAB for symbol name
@@ -137,11 +193,12 @@ int link_loader_pass1(FILE ** fp_list){
 }
 
 int link_loader_pass2(FILE **fp_list)  {
-    int i = 0, j, k, fp_index = 0, current_adrress;
+    int  j, fp_index = 0, length, offset;
     int CSLTH, control_section_address;
     char current_record[MAX_RECORD], temp[20];
 
-    control_section_address = program_addr;
+    control_section_address = linking_address; // start address setting
+
     while (fp_list[fp_index])// while not end of input do
     {                                                         
         fgets(current_record, MAX_RECORD, fp_list[fp_index]); // read next input record
@@ -149,8 +206,7 @@ int link_loader_pass2(FILE **fp_list)  {
             current_record[strlen(current_record) - 1] = '\0';
         // HEADER RECORD
         /* set CSLTH to control section length */
-        CSLTH = symbol_table[symbol_index - 1].addr;
-
+        CSLTH = symbol_index;
         fgets(current_record, MAX_RECORD, fp_list[fp_index]); // read next input record
         if(current_record[strlen(current_record) - 1] == '\n')
             current_record[strlen(current_record) - 1] = '\0';
@@ -160,15 +216,19 @@ int link_loader_pass2(FILE **fp_list)  {
                 // if record type == 'T' then
                 // convert into internal representation
                 // T Record의 2 ~ 6은 offset을 나타내고 7 ~ 8은 길이를 나타낸다.
+                /*
+                2 ~ 6 : offset
+                7 ~ 8 : length
+                */
                 memset(temp, '\0', 10);
                 strncpy(temp, current_record + 1, 6);
 
-                int offset = hex_to_dec(temp);
+                offset = hex_to_dec(temp);
 
                 memset(temp, '\0', 10);
                 strncpy(temp, current_record + 7, 2);
 
-                int length = hex_to_dec(temp);
+                length = hex_to_dec(temp);
                 
                 // 그 다음 record의 2 byte씩 묶어서 decimal로 전환한다.
                 for (j = 0; j < 10; j++){
@@ -189,11 +249,11 @@ int link_loader_pass2(FILE **fp_list)  {
                 memset(temp, '\0', 10);
                 strncpy(temp, current_record + 1, 6);
 
-                int offset = hex_to_dec(temp);
+                offset = hex_to_dec(temp);
 
                 memset(temp, '\0', 10);
                 strncpy(temp, current_record + 7, 2);
-                int length = hex_to_dec(temp);
+                length = hex_to_dec(temp);
 
                 // search ESTAB for modifying symbol name
                 // 그 전에 reference Number부터 얻어내자 이번 플젝은 두자리안임
@@ -208,6 +268,7 @@ int link_loader_pass2(FILE **fp_list)  {
                     return ERROR;
                 }
 
+                
                 // reference_number에 해당하는 ES 존재~
                 // add or subtract symbol value at location
 
@@ -223,17 +284,18 @@ int link_loader_pass2(FILE **fp_list)  {
 
             control_section_address += CSLTH;
 
-            fp_index++;
-            if(fp_index > 3)
-                break;
         }
-        return EXECADDR;
+
+        fp_index++;
+        if(fp_index > 2)
+            break;
+    }
+    return EXECADDR;
 }
 
 int is_control_section(char * cs_name)  {
     /* Symbol Table에서 그게 있는지 찾는다. */
-    int i, j;
-    i = 0;
+    int i;
 
     for(i = 0; i < symbol_index; i++){
         if(!strcmp(cs_name, symbol_table[i].symbol)){
@@ -244,7 +306,13 @@ int is_control_section(char * cs_name)  {
 }
 
 int is_estab(char * a){
-    return 0;
+    int i;
+    for (i = 0; i < ext_index; i++){
+        if(!strcmp(a, ext_table[i].symbol)){
+            return CAN_FIND;
+        }
+    }
+    return CANT_FIND;
 }
 
 int record_check(char target){
@@ -268,3 +336,4 @@ int hex_to_dec(char * hex)  {
     }
     return dec;
 }
+
